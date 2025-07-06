@@ -1,4 +1,4 @@
-const userPagePattern = new URLPattern({ pathname: "/users/:id" });
+const userPagePattern = new URLPattern({ pathname: "/api/users/:id" });
 
 export default {
   fetch(req) {
