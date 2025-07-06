@@ -1,0 +1,8 @@
+{
+  "tasks": {
+    "dev": "deno serve --watch -R main.ts"
+  },
+  "imports": {
+    "@std/http": "jsr:@std/http@1"
+  }
+}

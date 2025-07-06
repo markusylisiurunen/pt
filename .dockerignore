@@ -1,0 +1,7 @@
+.vscode
+.gitignore
+README.md
+
+web/.vscode
+web/dist
+web/node_modules
