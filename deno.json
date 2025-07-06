@@ -1,8 +1,10 @@
 {
   "tasks": {
-    "dev": "deno serve --watch -R main.ts"
+    "dev": "deno serve --watch -A main.ts"
   },
   "imports": {
-    "@std/http": "jsr:@std/http@1"
+    "@anthropic-ai/sdk": "npm:@anthropic-ai/sdk@^0.56.0",
+    "@std/http": "jsr:@std/http@1",
+    "zod": "npm:zod@^3.25.74"
   }
 }

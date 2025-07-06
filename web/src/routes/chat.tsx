@@ -2,27 +2,26 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { ChevronLeftIcon, SendIcon } from "lucide-react";
-import React from "react";
+import React, { useState } from "react";
 import Markdown from "react-markdown";
 import { useNavigate } from "react-router";
 
-const ChatHistory: React.FC = () => {
-  // prettier-ignore
-  const MESSAGES: { role: 'user' | 'assistant'; content: string }[] = [
-    { role: "user", content: "Hei!" },
-    { role: "assistant", content: "Hei! Miten voin auttaa sinua tänään?" },
-    { role: "user", content: "Miten treenaan rintalihaksia tehokkaasti?" },
-    { role: "assistant", content: "Rintalihasten treenaamiseen on useita hyviä liikkeitä, kuten penkkipunnerrus, vinopenkkipunnerrus ja punnerrukset. Voit myös lisätä eristäviä liikkeitä, kuten ristikkäistaljassa tehtävät flyesit." },
-  ];
+type ChatHistoryProps = {
+  messages: {
+    role: "user" | "assistant";
+    content: string;
+  }[];
+};
+const ChatHistory: React.FC<ChatHistoryProps> = ({ messages }) => {
   return (
     <div className="flex flex-1 flex-col gap-4 overflow-y-auto py-4">
-      {MESSAGES.map((msg, index) => (
+      {messages.map((msg, idx) => (
         <div
-          key={index}
+          key={idx}
           className={cn(
             "mx-4",
             msg.role === "assistant" ? "" : undefined,
-            msg.role === "user" ? "max-w-[80%] self-end rounded-md border p-2" : undefined,
+            msg.role === "user" ? "max-w-[80%] self-end rounded-lg border p-2" : undefined,
           )}
         >
           <Markdown>{msg.content}</Markdown>
@@ -32,11 +31,31 @@ const ChatHistory: React.FC = () => {
   );
 };
 
-const ChatFooter: React.FC = () => {
+type ChatFooterProps = {
+  onSend: (content: string) => void;
+};
+const ChatFooter: React.FC<ChatFooterProps> = ({ onSend }) => {
+  const [input, setInput] = useState("");
+
+  function handleSend() {
+    onSend(input);
+    setInput("");
+  }
+
   return (
     <div className="flex shrink-0 grow-0 gap-2 border-t px-4 py-4">
-      <Input placeholder="Kysy mitä vain" />
-      <Button size="icon">
+      <Input
+        placeholder="Kysy mitä vain"
+        value={input}
+        onChange={(e) => setInput(e.target.value)}
+      />
+      <Button
+        size="icon"
+        onClick={() => {
+          if (input.trim() === "") return;
+          handleSend();
+        }}
+      >
         <SendIcon />
       </Button>
     </div>
@@ -45,6 +64,18 @@ const ChatFooter: React.FC = () => {
 
 const ChatRoute: React.FC = () => {
   const navigate = useNavigate();
+  const [messages, setMessages] = useState<ChatHistoryProps["messages"]>([]);
+
+  async function sendChatMessage(content: string) {
+    setMessages((prev) => [...prev, { role: "user", content }]);
+    const response = await fetch("/api/chats/1", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ content }),
+    });
+    const data = await response.json();
+    setMessages((prev) => [...prev, { role: "assistant", content: data.answer }]);
+  }
 
   return (
     <div className="flex h-screen flex-col overflow-hidden">
@@ -54,8 +85,8 @@ const ChatRoute: React.FC = () => {
           <span>Takaisin</span>
         </Button>
       </div>
-      <ChatHistory />
-      <ChatFooter />
+      <ChatHistory messages={messages} />
+      <ChatFooter onSend={(content) => void sendChatMessage(content)} />
     </div>
   );
 };

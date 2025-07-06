@@ -10,7 +10,9 @@
     "jsr:@std/media-types@^1.1.0": "1.1.0",
     "jsr:@std/net@^1.0.4": "1.0.4",
     "jsr:@std/path@^1.1.0": "1.1.0",
-    "jsr:@std/streams@^1.0.10": "1.0.10"
+    "jsr:@std/streams@^1.0.10": "1.0.10",
+    "npm:@anthropic-ai/sdk@0.56": "0.56.0",
+    "npm:zod@^3.25.74": "3.25.74"
   },
   "jsr": {
     "@std/cli@1.0.20": {
@@ -55,9 +57,20 @@
       "integrity": "75c0b1431873cd0d8b3d679015220204d36d3c7420d93b60acfc379eb0dc30af"
     }
   },
+  "npm": {
+    "@anthropic-ai/sdk@0.56.0": {
+      "integrity": "sha512-SLCB8M8+VMg1cpCucnA1XWHGWqVSZtIWzmOdDOEu3eTFZMB+A0sGZ1ESO5MHDnqrNTXz3safMrWx9x4rMZSOqA==",
+      "bin": true
+    },
+    "zod@3.25.74": {
+      "integrity": "sha512-J8poo92VuhKjNknViHRAIuuN6li/EwFbAC8OedzI8uxpEPGiXHGQu9wemIAioIpqgfB4SySaJhdk0mH5Y4ICBg=="
+    }
+  },
   "workspace": {
     "dependencies": [
-      "jsr:@std/http@1"
+      "jsr:@std/http@1",
+      "npm:@anthropic-ai/sdk@0.56",
+      "npm:zod@^3.25.74"
     ]
   }
 }
