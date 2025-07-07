@@ -6,6 +6,8 @@ import React, { useState } from "react";
 import Markdown from "react-markdown";
 import { useNavigate } from "react-router";
 
+type AgentEvent = { type: "content_delta"; content: string } | { type: "tool_use"; name: string };
+
 type ChatHistoryProps = {
   messages: {
     role: "user" | "assistant";
@@ -19,6 +21,7 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({ messages }) => {
         <div
           key={idx}
           className={cn(
+            "markdown",
             "mx-4",
             msg.role === "assistant" ? "" : undefined,
             msg.role === "user" ? "max-w-[80%] self-end rounded-lg border p-2" : undefined,
@@ -68,13 +71,77 @@ const ChatRoute: React.FC = () => {
 
   async function sendChatMessage(content: string) {
     setMessages((prev) => [...prev, { role: "user", content }]);
-    const response = await fetch("/api/chats/1", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ content }),
-    });
-    const data = await response.json();
-    setMessages((prev) => [...prev, { role: "assistant", content: data.answer }]);
+
+    let assistantMessage = "";
+
+    try {
+      const response = await fetch("/api/chats/1", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ content }),
+      });
+
+      if (!response.body) {
+        throw new Error("No response body");
+      }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value, { stream: true });
+        const lines = chunk.split("\n");
+
+        for (const line of lines) {
+          if (line.startsWith("data: ")) {
+            const data = line.slice(6);
+            if (data === "[DONE]") {
+              break;
+            }
+
+            try {
+              const event: AgentEvent = JSON.parse(data);
+
+              if (event.type === "content_delta") {
+                assistantMessage += event.content;
+                setMessages((prev) => {
+                  const newMessages = [...prev];
+                  if (newMessages[newMessages.length - 1]?.role === "assistant") {
+                    newMessages[newMessages.length - 1].content = assistantMessage;
+                  } else {
+                    newMessages.push({ role: "assistant", content: assistantMessage });
+                  }
+                  return newMessages;
+                });
+              } else if (event.type === "tool_use") {
+                const toolMessage = `\`${event.name}\` was used.`;
+                assistantMessage += "\n\n" + toolMessage + "\n\n";
+                setMessages((prev) => {
+                  const newMessages = [...prev];
+                  if (newMessages[newMessages.length - 1]?.role === "assistant") {
+                    newMessages[newMessages.length - 1].content = assistantMessage;
+                  } else {
+                    newMessages.push({ role: "assistant", content: assistantMessage });
+                  }
+                  return newMessages;
+                });
+              }
+            } catch (e) {
+              console.error("Failed to parse event:", data, e);
+            }
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Error streaming response:", error);
+      setMessages((prev) => [
+        ...prev,
+        { role: "assistant", content: "Error: Failed to get response" },
+      ]);
+    }
   }
 
   return (

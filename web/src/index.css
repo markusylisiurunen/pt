@@ -118,3 +118,25 @@
     @apply bg-background text-foreground;
   }
 }
+
+.markdown {
+  > :first-child,
+  > :last-child {
+    margin-block: 0px !important;
+  }
+
+  p {
+    @apply my-2;
+  }
+  p code {
+    @apply bg-muted rounded border px-1 py-0.5 text-sm;
+  }
+
+  ul,
+  ol {
+    @apply my-4 list-disc pl-4;
+  }
+  li + li {
+    @apply mt-0.5;
+  }
+}
