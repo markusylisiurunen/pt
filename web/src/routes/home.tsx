@@ -52,7 +52,11 @@ const HomeRoute: React.FC = () => {
       </div>
 
       <div className="mt-8">
-        <Button size="lg" className="w-full" onClick={() => navigate("/chat")}>
+        <Button
+          size="lg"
+          className="w-full"
+          onClick={() => navigate(`/chats/${crypto.randomUUID()}`)}
+        >
           Keskustele
         </Button>
       </div>

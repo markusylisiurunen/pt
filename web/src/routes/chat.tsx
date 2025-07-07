@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 import { ChevronLeftIcon, SendIcon } from "lucide-react";
 import React, { useState } from "react";
 import Markdown from "react-markdown";
-import { useNavigate } from "react-router";
+import { useNavigate, useParams } from "react-router";
 
 type AgentEvent = { type: "content_delta"; content: string } | { type: "tool_use"; name: string };
 
@@ -67,6 +67,8 @@ const ChatFooter: React.FC<ChatFooterProps> = ({ onSend }) => {
 
 const ChatRoute: React.FC = () => {
   const navigate = useNavigate();
+  const params = useParams();
+  const id = params.id || "";
   const [messages, setMessages] = useState<ChatHistoryProps["messages"]>([]);
 
   async function sendChatMessage(content: string) {
@@ -75,7 +77,7 @@ const ChatRoute: React.FC = () => {
     let assistantMessage = "";
 
     try {
-      const response = await fetch("/api/chats/1", {
+      const response = await fetch(`/api/chats/${id}`, {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ content }),

@@ -54,10 +54,6 @@ export default {
 
     const chatMatch = chatPattern.exec(url);
     if (chatMatch) {
-      if (req.method !== "POST") {
-        return new Response("Method not allowed", { status: 405 });
-      }
-
       const id = chatMatch.pathname.groups["id"] as string;
       return await handleChat(req, id);
     }

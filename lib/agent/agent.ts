@@ -36,8 +36,8 @@ class Agent {
     this.db = db;
   }
 
-  async *send(_id: string, content: string): AsyncGenerator<AgentEvent> {
-    const messages: Anthropic.MessageParam[] = [];
+  async *send(id: string, content: string): AsyncGenerator<AgentEvent> {
+    const messages: Anthropic.MessageParam[] = this.loadChatHistory(id);
     messages.push({ role: "user", content: content });
 
     let turnsLeft = 16;
@@ -63,7 +63,7 @@ class Agent {
 
       const toolUseBlocks = message.content.filter((i) => i.type === "tool_use");
       if (toolUseBlocks.length === 0) {
-        return;
+        break;
       }
 
       for (const block of toolUseBlocks) {
@@ -79,6 +79,32 @@ class Agent {
         messages.push({ role: "user", content: [result] });
       }
     }
+
+    this.saveChatHistory(id, messages);
+  }
+
+  private loadChatHistory(chatId: string): Anthropic.MessageParam[] {
+    const result = this.db.prepare(`SELECT messages FROM chats WHERE id = ?`).get(chatId);
+    if (!result) {
+      return [];
+    }
+
+    const parsed = result as { messages: string };
+    return JSON.parse(parsed.messages);
+  }
+
+  private saveChatHistory(chatId: string, messages: Anthropic.MessageParam[]): void {
+    const messagesJson = JSON.stringify(messages);
+    const now = new Date().toISOString();
+
+    this.db
+      .prepare(
+        `
+        INSERT INTO chats (id, messages, created_at, updated_at) VALUES (?, ?, ?, ?)
+        ON CONFLICT (id) DO UPDATE SET messages = ?, updated_at = ?
+        `
+      )
+      .run(chatId, messagesJson, now, now, messagesJson, now);
   }
 
   private getSystemPrompt(): string {

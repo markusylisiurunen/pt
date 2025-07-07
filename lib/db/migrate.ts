@@ -13,6 +13,17 @@ CREATE TABLE documents (
 );
     `,
   },
+  {
+    version: 2,
+    migration: `
+CREATE TABLE chats (
+  id TEXT PRIMARY KEY,
+  messages TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+    `,
+  },
 ];
 
 function migrateSchema(db: DatabaseSync) {

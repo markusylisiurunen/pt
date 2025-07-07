@@ -21,7 +21,7 @@ function App() {
           <Route path="/auth" element={<AuthRoute />} />
           <Route element={<AuthLayout />}>
             <Route index element={<HomeRoute />} />
-            <Route path="/chat" element={<ChatRoute />} />
+            <Route path="/chats/:id" element={<ChatRoute />} />
           </Route>
         </Routes>
       </ThemeProvider>
