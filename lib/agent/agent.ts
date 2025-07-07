@@ -6,6 +6,10 @@ import {
   appendWeightLogEntryTool,
   executeAppendWeightLogEntryTool,
 } from "./append_weight_log_entry.ts";
+import {
+  addKnownIngredientTool,
+  executeAddKnownIngredientTool,
+} from "./tool_add_known_ingredient.ts";
 import { executeReadDocumentTool, readDocumentTool } from "./tool_read_document.ts";
 
 type ContentDeltaEvent = {
@@ -101,11 +105,17 @@ class Agent {
   }
 
   private getTools(): Anthropic.Tool[] {
-    return [appendFoodLogEntryTool(), appendWeightLogEntryTool(), readDocumentTool()];
+    return [
+      addKnownIngredientTool(),
+      appendFoodLogEntryTool(),
+      appendWeightLogEntryTool(),
+      readDocumentTool(),
+    ];
   }
 
   private callTool(name: string, input: unknown): string {
     const tools: Record<string, () => string> = {
+      [addKnownIngredientTool().name]: () => executeAddKnownIngredientTool(this.db, input),
       [appendFoodLogEntryTool().name]: () => executeAppendFoodLogEntryTool(this.db, input),
       [appendWeightLogEntryTool().name]: () => executeAppendWeightLogEntryTool(this.db, input),
       [readDocumentTool().name]: () => executeReadDocumentTool(this.db, input),
