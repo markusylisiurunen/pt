@@ -3,7 +3,7 @@
   flex-direction: column;
   margin-inline: auto;
   max-width: 640px;
-  padding-block: 16px;
+  padding-block: 12px;
   padding-inline: 12px;
 }
 
@@ -62,7 +62,7 @@
   display: flex;
   gap: 2px;
   justify-content: center;
-  margin-block: 16px;
+  margin-block: 12px 16px;
 }
 .home-root .intake-card .intake-values > :nth-child(1) {
   font-size: calc(24 / 16 * 1rem);
