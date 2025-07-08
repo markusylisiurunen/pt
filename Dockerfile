@@ -15,4 +15,5 @@ RUN printf '#!/bin/sh -eu\n\
 export ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-$(cat /run/secrets/anthropic_api_key 2>/dev/null || printf "")}\n\
 export PASSWORD=${PASSWORD:-$(cat /run/secrets/password 2>/dev/null || printf "")}\n\
 exec "$@"\n' > /entrypoint.sh && chmod +x /entrypoint.sh
+ENTRYPOINT ["/entrypoint.sh"]
 CMD ["deno", "serve", "-A", "main.ts"]
