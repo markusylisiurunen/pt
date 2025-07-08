@@ -88,6 +88,8 @@ function executeAppendFoodLogEntryTool(db: DatabaseSync, input: unknown): string
     fat: parsed.data.fat,
   });
 
+  log.data.entries.sort((a, b) => new Date(a.ts).getTime() - new Date(b.ts).getTime());
+
   writeDocumentContentBySlug(db, "log", JSON.stringify(log.data));
 
   return "Food log entry recorded.";

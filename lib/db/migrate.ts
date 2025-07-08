@@ -1,4 +1,7 @@
 import { DatabaseSync } from "node:sqlite";
+import { Config } from "../entities/config.ts";
+import { KnownIngredients } from "../entities/ingredient.ts";
+import { Log } from "../entities/log.ts";
 
 const MIGRATIONS: { version: number; migration: string }[] = [
   {
@@ -11,11 +14,7 @@ CREATE TABLE documents (
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL
 );
-    `,
-  },
-  {
-    version: 2,
-    migration: `
+
 CREATE TABLE chats (
   id TEXT PRIMARY KEY,
   messages TEXT NOT NULL,
@@ -41,10 +40,34 @@ function migrateSchema(db: DatabaseSync) {
 }
 
 function migrateDocuments(db: DatabaseSync) {
+  const inThreeMonths = new Date();
+  inThreeMonths.setHours(0, 0, 0, 0);
+  inThreeMonths.setMonth(inThreeMonths.getMonth() + 3);
+
+  const defaultConfig: Config = {
+    targetDailyIntakeCalories: 1800,
+    targetDailyIntakeProtein: 160,
+    targetWeightDate: inThreeMonths.toISOString(),
+    targetWeightValue: 75,
+  };
+
   const defaultDocuments = [
-    { slug: "training-program", content: "" },
-    { slug: "known-ingredients", content: "" },
-    { slug: "log", content: "" },
+    {
+      slug: "config",
+      content: JSON.stringify(defaultConfig),
+    },
+    {
+      slug: "log",
+      content: JSON.stringify({ entries: [] } satisfies Log),
+    },
+    {
+      slug: "known-ingredients",
+      content: JSON.stringify({ ingredients: [] } satisfies KnownIngredients),
+    },
+    {
+      slug: "training-program",
+      content: "",
+    },
   ];
 
   for (const document of defaultDocuments) {

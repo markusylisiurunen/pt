@@ -1,6 +1,11 @@
 import React, { useMemo } from "react";
 import { Label, Line, LineChart, ReferenceLine, ResponsiveContainer, YAxis } from "recharts";
 
+function formatDate(dateStr: string): string {
+  const date = new Date(dateStr);
+  return date.toLocaleDateString("fi-FI", { day: "2-digit", month: "2-digit" });
+}
+
 type WeightGraphProps = {
   now: string;
   history: { date: string; weight: number }[];
@@ -70,7 +75,7 @@ const WeightGraph: React.FC<WeightGraphProps> = ({ now, history, targetDate, tar
             >
               <Label
                 dy={14}
-                fill="var(--color-text)"
+                fill="color-mix(in srgb, var(--color-text) 75%, transparent)"
                 fontFamily="GeistMono, monospace"
                 fontSize={14}
                 letterSpacing="-0.04em"
@@ -83,7 +88,7 @@ const WeightGraph: React.FC<WeightGraphProps> = ({ now, history, targetDate, tar
             >
               <Label
                 dy={-14}
-                fill="var(--color-text)"
+                fill="color-mix(in srgb, var(--color-text) 75%, transparent)"
                 fontFamily="GeistMono, monospace"
                 fontSize={14}
                 letterSpacing="-0.04em"
@@ -96,7 +101,7 @@ const WeightGraph: React.FC<WeightGraphProps> = ({ now, history, targetDate, tar
             >
               <Label
                 dy={14}
-                fill="var(--color-text)"
+                fill="color-mix(in srgb, var(--color-text) 75%, transparent)"
                 fontFamily="GeistMono, monospace"
                 fontSize={14}
                 letterSpacing="-0.04em"
@@ -125,6 +130,10 @@ const WeightGraph: React.FC<WeightGraphProps> = ({ now, history, targetDate, tar
             />
           </LineChart>
         </ResponsiveContainer>
+      </div>
+      <div className="dates">
+        <span>{formatDate(history.at(0)?.date ?? new Date().toISOString())}</span>
+        <span>{formatDate(targetDate)}</span>
       </div>
     </div>
   );

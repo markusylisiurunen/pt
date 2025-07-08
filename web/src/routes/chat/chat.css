@@ -103,8 +103,11 @@
 .chat-root .assistant-message {
   margin-inline: 12px;
 }
-.chat-root .assistant-message p {
-  margin: 0px;
+.chat-root .assistant-message .markdown > :first-child {
+  margin-block-start: 0px !important;
+}
+.chat-root .assistant-message .markdown > :last-child {
+  margin-block-end: 0px !important;
 }
 
 .chat-root .tool-use-message {

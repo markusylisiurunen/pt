@@ -1,27 +1,62 @@
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import { IntakeCard } from "./components/intake-card";
 import { WeightGraph } from "./components/weight-graph";
 import "./home.css";
 
-const WEIGHT_DATA = [
-  { date: "2025-01-01", weight: 90 },
-  { date: "2025-02-01", weight: 88 },
-  { date: "2025-03-01", weight: 87 },
-  { date: "2025-04-01", weight: 86 },
-  { date: "2025-05-01", weight: 85 },
-  { date: "2025-06-01", weight: 84 },
-  { date: "2025-07-01", weight: 83 },
-];
-
 const HomeRoute: React.FC = () => {
   const navigate = useNavigate();
   const now = useMemo(() => new Date().toISOString(), []);
+
+  const [dailyIntake, setDailyIntake] = useState({ kcal: 0, protein: 0 });
+  const [dailyTarget, setDailyTarget] = useState({ kcal: 0, protein: 0 });
+  const [weightHistory, setWeightHistory] = useState<{ date: string; weight: number }[]>([]);
+  const [targetWeightDate, setTargetWeightDate] = useState<string>("");
+  const [targetWeightValue, setTargetWeightValue] = useState<number>(0);
 
   function handleLogout() {
     window.localStorage.removeItem("token");
     navigate("/login", { replace: true });
   }
+
+  useEffect(() => {
+    void Promise.resolve().then(async () => {
+      const resp = await fetch("/api/config", {
+        headers: {
+          authorization: `Bearer ${window.localStorage.getItem("token")}`,
+        },
+      });
+      if (resp.ok) {
+        const data = (await resp.json()) as {
+          config: {
+            targetDailyIntakeCalories: number;
+            targetDailyIntakeProtein: number;
+            targetWeightDate: string;
+            targetWeightValue: number;
+          };
+          foodIntakeToday: {
+            kcal: number;
+            protein: number;
+          };
+          weightHistory: {
+            date: string;
+            weight: number;
+          }[];
+        };
+        setDailyIntake({
+          kcal: data.foodIntakeToday.kcal,
+          protein: data.foodIntakeToday.protein,
+        });
+        setDailyTarget({
+          kcal: data.config.targetDailyIntakeCalories,
+          protein: data.config.targetDailyIntakeProtein,
+        });
+        setWeightHistory(data.weightHistory);
+        setTargetWeightDate(data.config.targetWeightDate);
+        setTargetWeightValue(data.config.targetWeightValue);
+      }
+    });
+  }, []);
 
   return (
     <div className="home-root">
@@ -32,24 +67,24 @@ const HomeRoute: React.FC = () => {
       <div className="intake">
         <IntakeCard
           heading="Kalorit"
-          current={2000}
-          target={1800}
+          current={dailyIntake.kcal}
+          target={dailyTarget.kcal}
           unit="kcal"
           maximumFractionDigits={0}
         />
         <IntakeCard
           heading="Proteiini"
-          current={128.4}
-          target={160}
+          current={dailyIntake.protein}
+          target={dailyTarget.protein}
           unit="g"
           maximumFractionDigits={1}
         />
       </div>
       <WeightGraph
         now={now}
-        history={WEIGHT_DATA}
-        targetDate="2025-09-01T00:00:00Z"
-        targetWeight={78}
+        history={weightHistory}
+        targetDate={targetWeightDate}
+        targetWeight={targetWeightValue}
       />
     </div>
   );

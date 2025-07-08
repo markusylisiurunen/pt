@@ -7,7 +7,9 @@ type AssistantMessageProps = {
 const AssistantMessage: React.FC<AssistantMessageProps> = ({ content }) => {
   return (
     <div className="assistant-message">
-      <Markdown>{content}</Markdown>
+      <div className="markdown">
+        <Markdown>{content}</Markdown>
+      </div>
     </div>
   );
 };

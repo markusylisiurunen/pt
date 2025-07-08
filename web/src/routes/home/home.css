@@ -108,3 +108,13 @@
 .home-root .weight-graph svg {
   outline: none;
 }
+.home-root .weight-graph .dates {
+  color: color-mix(in srgb, var(--color-text) 75%, transparent);
+  display: flex;
+  font-family: "GeistMono", monospace;
+  font-size: calc(14 / 16 * 1rem);
+  font-weight: 400;
+  justify-content: space-between;
+  letter-spacing: -0.04em;
+  margin-block-start: 8px;
+}
