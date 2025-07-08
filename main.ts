@@ -22,10 +22,15 @@ const exportPattern = new URLPattern({ pathname: "/api/export" });
 const importPattern = new URLPattern({ pathname: "/api/import" });
 
 export default {
-  fetch(req) {
+  async fetch(req) {
     const url = new URL(req.url);
+
     if (!url.pathname.startsWith("/api/")) {
-      return serveDir(req, { fsRoot: "./web/dist" });
+      const response = await serveDir(req, { fsRoot: "./web/dist" });
+      if (response.status === 404 && !url.pathname.includes(".")) {
+        return serveDir(new Request(new URL("/", req.url)), { fsRoot: "./web/dist" });
+      }
+      return response;
     }
 
     const auth = req.headers.get("authorization");
