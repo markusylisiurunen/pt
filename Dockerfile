@@ -12,6 +12,7 @@ COPY . .
 RUN deno cache main.ts
 COPY --from=web /app/dist ./web/dist
 RUN printf '#!/bin/sh -eu\n\
-export OPENROUTER_TOKEN=$(cat /run/secrets/openrouter_token 2>/dev/null || printf "")\n\
+export ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-$(cat /run/secrets/anthropic_api_key 2>/dev/null || printf "")}\n\
+export PASSWORD=${PASSWORD:-$(cat /run/secrets/password 2>/dev/null || printf "")}\n\
 exec "$@"\n' > /entrypoint.sh && chmod +x /entrypoint.sh
 CMD ["deno", "serve", "-A", "main.ts"]
