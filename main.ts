@@ -1,7 +1,7 @@
 import { DatabaseSync } from "node:sqlite";
 import { migrateDocuments, migrateSchema } from "./lib/db/migrate.ts";
 
-const db = new DatabaseSync("test.db");
+const db = new DatabaseSync(`${Deno.env.get("DATA_FOLDER") || "."}/data.db`);
 
 migrateSchema(db);
 migrateDocuments(db);
