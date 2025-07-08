@@ -17,9 +17,18 @@ const WEIGHT_DATA = [
 const HomeRoute: React.FC = () => {
   const navigate = useNavigate();
   const now = useMemo(() => new Date().toISOString(), []);
+
+  function handleLogout() {
+    window.localStorage.removeItem("token");
+    navigate("/login", { replace: true });
+  }
+
   return (
     <div className="home-root">
-      <button onClick={() => navigate(`/chats/${crypto.randomUUID()}`)}>Keskustele</button>
+      <div className="header">
+        <button onClick={handleLogout}>Poistu</button>
+        <button onClick={() => navigate(`/chats/${crypto.randomUUID()}`)}>Keskustele</button>
+      </div>
       <div className="intake">
         <IntakeCard
           heading="Kalorit"
