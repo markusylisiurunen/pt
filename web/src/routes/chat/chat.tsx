@@ -1,5 +1,6 @@
 import { ArrowUpIcon, AudioLinesIcon } from "lucide-react";
 import React from "react";
+import { useNavigate } from "react-router";
 import "./chat.css";
 import { AssistantMessage } from "./components/assistant-message";
 import { ToolUseMessage } from "./components/tool-use-message";
@@ -13,8 +14,10 @@ const MESSAGES = [
 ] as const;
 
 const ChatRoute: React.FC = () => {
+  const navigate = useNavigate();
   return (
     <div className="chat-root">
+      <button onClick={() => navigate(-1)}>Takaisin</button>
       <div className="history">
         {MESSAGES.map((message, index) => {
           const spacer = index > 0 ? <div style={{ height: 16 }} /> : null;

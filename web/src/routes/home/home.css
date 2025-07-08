@@ -7,14 +7,88 @@
   padding-inline: 12px;
 }
 
+.home-root .intake {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(2, 1fr);
+  margin-block-end: 12px;
+}
+
+.home-root .intake-card {
+  border: 1px solid color-mix(in srgb, var(--color-text) 20%, transparent);
+  padding-block: 0px 12px;
+  padding-inline: 12px;
+}
+.home-root .intake-card > h3 {
+  font-family: "GeistMono", monospace;
+  font-size: calc(14 / 16 * 1rem);
+  font-weight: 400;
+  letter-spacing: -0.04em;
+  margin-block: 12px 0px;
+}
+.home-root .intake-card .intake-values {
+  align-items: flex-end;
+  display: flex;
+  gap: 2px;
+  justify-content: center;
+  margin-block: 16px;
+}
+.home-root .intake-card .intake-values > :nth-child(1) {
+  font-size: calc(24 / 16 * 1rem);
+  font-weight: 600;
+  line-height: 1;
+}
+@media (width < 768px) {
+  .home-root .intake-card .intake-values > :nth-child(1) {
+    font-size: calc(21 / 16 * 1rem);
+  }
+}
+.home-root .intake-card .intake-values > :not(:nth-child(1)) {
+  color: color-mix(in srgb, var(--color-text) 75%, transparent);
+  font-weight: 600;
+  line-height: 1;
+  margin-block-end: 1px;
+}
+.home-root .intake-card .intake-progress {
+  background-color: color-mix(in srgb, var(--color-text) 25%, transparent);
+  height: 6px;
+  width: 100%;
+}
+.home-root .intake-card .intake-progress > div {
+  height: 100%;
+}
+
 .home-root .weight-graph {
   border: 1px solid color-mix(in srgb, var(--color-text) 20%, transparent);
-  padding: 12px;
+  padding-block: 0px 12px;
+  padding-inline: 12px;
 }
 .home-root .weight-graph > h3 {
   font-family: "GeistMono", monospace;
   font-size: calc(14 / 16 * 1rem);
   font-weight: 400;
   letter-spacing: -0.04em;
-  margin: 0px;
+  margin-block: 12px;
+}
+.home-root .weight-graph .chart-container {
+  aspect-ratio: 16 / 9;
+  width: 100%;
+}
+
+.home-root > button {
+  align-items: center;
+  appearance: none;
+  background: var(--color-text);
+  border-radius: 0px;
+  border: none;
+  color: var(--color-bg);
+  cursor: pointer;
+  display: inline-flex;
+  font-weight: 500;
+  height: 40px;
+  justify-content: center;
+  margin-block-end: 12px;
+  outline: none;
+  padding: 0px;
+  width: 100%;
 }

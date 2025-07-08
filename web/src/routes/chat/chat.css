@@ -2,7 +2,27 @@
   display: flex;
   flex-direction: column;
   height: 100vh;
+  margin-inline: auto;
+  max-width: 640px;
   width: 100%;
+}
+
+.chat-root > button {
+  align-items: center;
+  appearance: none;
+  background: color-mix(in srgb, var(--color-text) 12%, transparent);
+  border-radius: 0px;
+  border: none;
+  color: var(--color-text);
+  cursor: pointer;
+  display: inline-flex;
+  font-weight: 500;
+  height: 40px;
+  justify-content: center;
+  margin-block: 12px 0px;
+  margin-inline: 12px;
+  outline: none;
+  padding: 0px;
 }
 
 .chat-root .history {
@@ -26,7 +46,7 @@
   border: none;
   color: var(--color-text);
   display: block;
-  height: calc(2 * 12px + 4 * 1.5em);
+  height: calc(2 * 12px + 3 * 1.5em);
   line-height: 1.5;
   outline: none;
   padding: 12px;
@@ -74,6 +94,7 @@
 .chat-root .user-message p {
   background-color: var(--color-text);
   color: var(--color-bg);
+  font-weight: 450;
   margin: 0px;
   max-width: 80%;
   padding: 8px;

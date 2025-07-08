@@ -1,4 +1,6 @@
 import React, { useMemo } from "react";
+import { useNavigate } from "react-router";
+import { IntakeCard } from "./components/intake-card";
 import { WeightGraph } from "./components/weight-graph";
 import "./home.css";
 
@@ -13,9 +15,27 @@ const WEIGHT_DATA = [
 ];
 
 const HomeRoute: React.FC = () => {
+  const navigate = useNavigate();
   const now = useMemo(() => new Date().toISOString(), []);
   return (
     <div className="home-root">
+      <button onClick={() => navigate(`/chats/${crypto.randomUUID()}`)}>Keskustele</button>
+      <div className="intake">
+        <IntakeCard
+          heading="Kalorit"
+          current={2000}
+          target={1800}
+          unit="kcal"
+          maximumFractionDigits={0}
+        />
+        <IntakeCard
+          heading="Proteiini"
+          current={128.4}
+          target={160}
+          unit="g"
+          maximumFractionDigits={1}
+        />
+      </div>
       <WeightGraph
         now={now}
         history={WEIGHT_DATA}

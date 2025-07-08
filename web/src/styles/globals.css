@@ -26,6 +26,7 @@
   font-family: "Geist", system-ui, sans-serif;
   font-optical-sizing: auto;
   font-synthesis: none;
+  letter-spacing: -0.02em;
   overflow-wrap: break-word;
   text-rendering: optimizeLegibility;
   text-size-adjust: none;

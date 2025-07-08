@@ -59,7 +59,7 @@ const WeightGraph: React.FC<WeightGraphProps> = ({ now, history, targetDate, tar
   return (
     <div className="weight-graph">
       <h3>Painon kehitys</h3>
-      <div style={{ width: "100%", height: 300, marginBlockStart: 12 }}>
+      <div className="chart-container">
         <ResponsiveContainer>
           <LineChart data={chartData} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
             <YAxis domain={[domainMin, domainMax]} hide={true} />
