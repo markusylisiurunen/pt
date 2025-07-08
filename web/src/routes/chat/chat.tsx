@@ -145,7 +145,14 @@ const ChatRoute: React.FC = () => {
             placeholder="Kirjoita mitä vain"
           />
           <div className="actions">
-            <AudioButton onTranscript={(transcript) => setInput((input) => input + transcript)} />
+            <AudioButton
+              onTranscript={(transcript) =>
+                setInput((input) => (input.trim() + "\n\n" + transcript).trim())
+              }
+              onError={(error) => {
+                alert(`${error.message} (${error.type})`);
+              }}
+            />
             <button id="send" onClick={sendMessage} disabled={isStreaming}>
               {isStreaming ? (
                 <SquareIcon size={19} strokeWidth={2} />

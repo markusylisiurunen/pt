@@ -86,12 +86,15 @@
   background-color: color-mix(in srgb, var(--color-text) 8%, transparent);
   color: color-mix(in srgb, var(--color-text) 75%, transparent);
 }
-.chat-root .footer .input-container .actions button#audio:where([data-recording]) {
+.chat-root .footer .input-container .actions button#audio:where([data-recording]),
+.chat-root .footer .input-container .actions button#audio:where([data-error]) {
   color: var(--color-text);
   padding-inline: 12px;
   width: auto;
 }
-.chat-root .footer .input-container .actions button#audio .audio-button-timer {
+.chat-root .footer .input-container .actions button#audio .audio-button-timer,
+.chat-root .footer .input-container .actions button#audio .audio-button-processing,
+.chat-root .footer .input-container .actions button#audio .audio-button-error {
   display: inline-flex;
   font-family: "GeistMono", monospace;
   font-size: calc(15 / 16 * 1rem);
