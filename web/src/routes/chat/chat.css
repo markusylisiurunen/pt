@@ -1,0 +1,101 @@
+.chat-root {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100%;
+}
+
+.chat-root .history {
+  flex: 1 1 0px;
+  overflow-y: auto;
+  padding-block: 16px;
+}
+
+.chat-root .footer {
+  flex: 0 0 auto;
+  padding-block: 0px 8px;
+  padding-inline: 8px;
+}
+
+.chat-root .footer .input-container {
+  background-color: color-mix(in srgb, currentColor 12%, transparent);
+}
+.chat-root .footer .input-container textarea {
+  appearance: none;
+  background: none;
+  border: none;
+  color: var(--color-text);
+  display: block;
+  height: calc(2 * 12px + 4 * 1.5em);
+  line-height: 1.5;
+  outline: none;
+  padding: 12px;
+  resize: none;
+  width: 100%;
+}
+.chat-root .footer .input-container textarea::placeholder {
+  color: color-mix(in srgb, var(--color-text) 50%, transparent);
+}
+.chat-root .footer .input-container .actions {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  padding-block: 0px 8px;
+  padding-inline: 8px;
+}
+.chat-root .footer .input-container .actions button {
+  align-items: center;
+  appearance: none;
+  border-radius: 0px;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  height: 36px;
+  justify-content: center;
+  outline: none;
+  padding: 0px;
+  width: 36px;
+}
+.chat-root .footer .input-container .actions button#audio {
+  background-color: color-mix(in srgb, var(--color-text) 12%, transparent);
+  color: color-mix(in srgb, var(--color-text) 75%, transparent);
+}
+.chat-root .footer .input-container .actions button#send {
+  background-color: var(--color-text);
+  color: var(--color-bg);
+}
+
+.chat-root .user-message {
+  display: flex;
+  justify-content: flex-end;
+  margin-inline: 12px;
+}
+.chat-root .user-message p {
+  background-color: var(--color-text);
+  color: var(--color-bg);
+  margin: 0px;
+  max-width: 80%;
+  padding: 8px;
+}
+
+.chat-root .assistant-message {
+  margin-inline: 12px;
+}
+.chat-root .assistant-message p {
+  margin: 0px;
+}
+
+.chat-root .tool-use-message {
+  display: flex;
+  justify-content: flex-start;
+  margin-inline: 12px;
+}
+.chat-root .tool-use-message > div {
+  align-items: center;
+  border: 1px solid color-mix(in srgb, var(--color-text) 25%, transparent);
+  display: flex;
+  font-family: "GeistMono", monospace;
+  gap: 8px;
+  padding: 8px;
+}

@@ -1,0 +1,41 @@
+@import url("./normalize.css");
+@import url("./theme.css");
+
+@font-face {
+  font-family: "Geist";
+  src: url("/fonts/Geist[wght].ttf") format("truetype-variations");
+  font-weight: 100 900;
+  font-stretch: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "GeistMono";
+  src: url("/fonts/GeistMono[wght].ttf") format("truetype-variations");
+  font-weight: 100 900;
+  font-stretch: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  background-color: var(--color-bg);
+  color-scheme: dark;
+  color: var(--color-text);
+  font-family: "Geist", system-ui, sans-serif;
+  font-optical-sizing: auto;
+  font-synthesis: none;
+  overflow-wrap: break-word;
+  text-rendering: optimizeLegibility;
+  text-size-adjust: none;
+  text-wrap-mode: wrap;
+  word-break: break-word;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  margin: 0px;
+  padding: 0px;
+}

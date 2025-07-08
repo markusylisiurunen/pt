@@ -1,0 +1,20 @@
+.home-root {
+  display: flex;
+  flex-direction: column;
+  margin-inline: auto;
+  max-width: 640px;
+  padding-block: 16px;
+  padding-inline: 12px;
+}
+
+.home-root .weight-graph {
+  border: 1px solid color-mix(in srgb, var(--color-text) 20%, transparent);
+  padding: 12px;
+}
+.home-root .weight-graph > h3 {
+  font-family: "GeistMono", monospace;
+  font-size: calc(14 / 16 * 1rem);
+  font-weight: 400;
+  letter-spacing: -0.04em;
+  margin: 0px;
+}
