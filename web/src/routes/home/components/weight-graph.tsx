@@ -66,7 +66,7 @@ const WeightGraph: React.FC<WeightGraphProps> = ({ now, history, targetDate, tar
       <h3>Painon kehitys</h3>
       <div className="chart-container">
         <ResponsiveContainer>
-          <LineChart data={chartData} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
+          <LineChart data={chartData} margin={{ top: 2, right: 0, left: 0, bottom: 2 }}>
             <YAxis domain={[domainMin, domainMax]} hide={true} />
             <ReferenceLine
               stroke="color-mix(in srgb, var(--color-text) 33%, transparent)"
