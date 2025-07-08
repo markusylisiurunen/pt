@@ -77,13 +77,26 @@
   padding: 0px;
   width: 36px;
 }
+.chat-root .footer .input-container .actions button#send {
+  background-color: var(--color-text);
+  color: var(--color-bg);
+}
+
 .chat-root .footer .input-container .actions button#audio {
   background-color: color-mix(in srgb, var(--color-text) 8%, transparent);
   color: color-mix(in srgb, var(--color-text) 75%, transparent);
 }
-.chat-root .footer .input-container .actions button#send {
-  background-color: var(--color-text);
-  color: var(--color-bg);
+.chat-root .footer .input-container .actions button#audio:where([data-recording]) {
+  color: var(--color-text);
+  padding-inline: 12px;
+  width: auto;
+}
+.chat-root .footer .input-container .actions button#audio .audio-button-timer {
+  display: inline-flex;
+  font-family: "GeistMono", monospace;
+  font-size: calc(15 / 16 * 1rem);
+  gap: 8px;
+  letter-spacing: -0.04em;
 }
 
 .chat-root .user-message {

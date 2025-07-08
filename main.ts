@@ -12,6 +12,7 @@ import { chatRoute } from "./lib/routes/chat.ts";
 import { configRoute } from "./lib/routes/config.ts";
 import { exportRoute } from "./lib/routes/export.ts";
 import { importRoute } from "./lib/routes/import.ts";
+import { transcribeRoute } from "./lib/routes/transcribe.ts";
 
 const password = Deno.env.get("PASSWORD") || crypto.randomUUID();
 const agent = new Agent(Deno.env.get("ANTHROPIC_API_KEY") ?? "", db);
@@ -20,6 +21,7 @@ const chatPattern = new URLPattern({ pathname: "/api/chats/:id" });
 const configPattern = new URLPattern({ pathname: "/api/config" });
 const exportPattern = new URLPattern({ pathname: "/api/export" });
 const importPattern = new URLPattern({ pathname: "/api/import" });
+const transcribePattern = new URLPattern({ pathname: "/api/transcribe" });
 
 export default {
   async fetch(req) {
@@ -49,6 +51,9 @@ export default {
 
     const importMatch = importPattern.exec(url);
     if (importMatch) return importRoute(db)(req);
+
+    const transcribeMatch = transcribePattern.exec(url);
+    if (transcribeMatch) return transcribeRoute(Deno.env.get("GEMINI_API_KEY") ?? "")(req);
 
     return new Response("Not found", { status: 404 });
   },

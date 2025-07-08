@@ -1,8 +1,9 @@
-import { ArrowUpIcon, AudioLinesIcon, SquareIcon } from "lucide-react";
+import { ArrowUpIcon, SquareIcon } from "lucide-react";
 import React, { useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import "./chat.css";
 import { AssistantMessage } from "./components/assistant-message";
+import { AudioButton } from "./components/audio-button";
 import { ToolUseMessage } from "./components/tool-use-message";
 import { UserMessage } from "./components/user-message";
 
@@ -144,9 +145,7 @@ const ChatRoute: React.FC = () => {
             placeholder="Kirjoita mitä vain"
           />
           <div className="actions">
-            <button id="audio">
-              <AudioLinesIcon size={19} strokeWidth={2} />
-            </button>
+            <AudioButton onTranscript={(transcript) => setInput((input) => input + transcript)} />
             <button id="send" onClick={sendMessage} disabled={isStreaming}>
               {isStreaming ? (
                 <SquareIcon size={19} strokeWidth={2} />
