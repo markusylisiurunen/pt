@@ -14,4 +14,4 @@ COPY --from=web /app/dist ./web/dist
 RUN printf '#!/bin/sh -eu\n\
 export OPENROUTER_TOKEN=$(cat /run/secrets/openrouter_token 2>/dev/null || printf "")\n\
 exec "$@"\n' > /entrypoint.sh && chmod +x /entrypoint.sh
-CMD ["deno", "serve", "-R", "-W", "main.ts"]
+CMD ["deno", "serve", "-A", "main.ts"]

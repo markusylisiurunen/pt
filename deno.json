@@ -1,6 +1,6 @@
 {
   "tasks": {
-    "dev": "deno serve --watch -A main.ts"
+    "dev": "deno serve --env-file --watch -A main.ts"
   },
   "imports": {
     "@anthropic-ai/sdk": "npm:@anthropic-ai/sdk@^0.56.0",

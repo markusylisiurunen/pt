@@ -1,3 +1,4 @@
+import { serveDir } from "@std/http";
 import { migrateDocuments, migrateSchema } from "./lib/db/migrate.ts";
 
 const db = new DatabaseSync("test.db");
@@ -8,6 +9,8 @@ migrateDocuments(db);
 import { DatabaseSync } from "node:sqlite";
 import { z } from "zod";
 import { Agent } from "./lib/agent/agent.ts";
+
+const PASSWORD = Deno.env.get("PASSWORD") || crypto.randomUUID();
 
 const agent = new Agent(Deno.env.get("ANTHROPIC_API_KEY") ?? "", db);
 
@@ -51,6 +54,15 @@ async function handleChat(req: Request, id: string): Promise<Response> {
 export default {
   async fetch(req) {
     const url = new URL(req.url);
+
+    if (!url.pathname.startsWith("/api/")) {
+      return serveDir(req, { fsRoot: "./web/dist" });
+    }
+
+    const auth = req.headers.get("authorization");
+    if (!auth || auth !== `Bearer ${PASSWORD}`) {
+      return new Response("Unauthorized", { status: 401 });
+    }
 
     const chatMatch = chatPattern.exec(url);
     if (chatMatch) {
