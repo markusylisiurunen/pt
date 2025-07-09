@@ -1,5 +1,5 @@
 import Anthropic from "@anthropic-ai/sdk";
-import { loadPyodide } from "pyodide";
+import { loadPyodide, PyodideInterface } from "pyodide";
 import z from "zod";
 
 const description = `
@@ -16,6 +16,29 @@ Important notes:
 - If the code produces stderr output, it will be returned as an error
 - If no output is produced to stdout, returns a success message
 `.trim();
+
+let pyodideInstance: PyodideInterface | null = null;
+let pyodideLoadPromise: Promise<PyodideInterface> | null = null;
+
+let initialGlobals: Set<string> | null = null;
+
+let executionLock: Promise<string | void> = Promise.resolve();
+
+function getPyodideInstance() {
+  if (pyodideInstance) {
+    return pyodideInstance;
+  }
+
+  if (!pyodideLoadPromise) {
+    pyodideLoadPromise = loadPyodide().then((instance) => {
+      pyodideInstance = instance;
+      initialGlobals = new Set(instance.runPython("list(globals().keys())"));
+      return instance;
+    });
+  }
+
+  return pyodideLoadPromise;
+}
 
 // deno-fmt-ignore
 function executePythonTool(): Anthropic.Tool {
@@ -35,6 +58,7 @@ function executePythonTool(): Anthropic.Tool {
   };
 }
 
+// deno-lint-ignore require-await
 async function executeExecutePythonTool(input: unknown): Promise<string> {
   const inputSchema = z.object({
     code: z.string().min(1),
@@ -44,45 +68,58 @@ async function executeExecutePythonTool(input: unknown): Promise<string> {
     return "Error: Invalid input.";
   }
 
-  try {
-    const pyodide = await loadPyodide();
+  const currentExecution = executionLock.then(async () => {
+    try {
+      const pyodide = await getPyodideInstance();
 
-    let capturedOutput = "";
-    let capturedError = "";
+      let capturedOutput = "";
+      let capturedError = "";
 
-    const outputBuffer: number[] = [];
-    const errorBuffer: number[] = [];
+      const outputBuffer: number[] = [];
+      const errorBuffer: number[] = [];
 
-    const decoder = new TextDecoder("utf-8");
+      const decoder = new TextDecoder("utf-8");
 
-    pyodide.setStdout({
-      raw(charCode: number) {
-        outputBuffer.push(charCode);
-      },
-    });
-    pyodide.setStderr({
-      raw(charCode: number) {
-        errorBuffer.push(charCode);
-      },
-    });
+      pyodide.setStdout({
+        raw(charCode: number) {
+          outputBuffer.push(charCode);
+        },
+      });
+      pyodide.setStderr({
+        raw(charCode: number) {
+          errorBuffer.push(charCode);
+        },
+      });
 
-    pyodide.runPython(parsed.data.code);
+      pyodide.runPython(parsed.data.code);
 
-    if (outputBuffer.length > 0) {
-      capturedOutput = decoder.decode(new Uint8Array(outputBuffer));
+      if (outputBuffer.length > 0) {
+        capturedOutput = decoder.decode(new Uint8Array(outputBuffer));
+      }
+      if (errorBuffer.length > 0) {
+        capturedError = decoder.decode(new Uint8Array(errorBuffer));
+      }
+
+      const currentGlobals = pyodide.runPython("list(globals().keys())");
+      for (const key of currentGlobals) {
+        if (!initialGlobals!.has(key)) {
+          pyodide.runPython(`del globals()['${key}']`);
+        }
+      }
+
+      if (capturedError) {
+        return `Got a non-empty stderr output:\n${capturedError}`;
+      }
+
+      return capturedOutput || "Code executed successfully (no output).";
+    } catch (error) {
+      return `Error: ${error instanceof Error ? error.message : String(error)}`;
     }
-    if (errorBuffer.length > 0) {
-      capturedError = decoder.decode(new Uint8Array(errorBuffer));
-    }
+  });
 
-    if (capturedError) {
-      return `Got a non-empty stderr output:\n${capturedError}`;
-    }
+  executionLock = currentExecution.catch(() => {});
 
-    return capturedOutput || "Code executed successfully (no output).";
-  } catch (error) {
-    return `Error: ${error instanceof Error ? error.message : String(error)}`;
-  }
+  return currentExecution;
 }
 
 export { executeExecutePythonTool, executePythonTool };
