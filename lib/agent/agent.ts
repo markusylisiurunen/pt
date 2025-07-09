@@ -1,16 +1,20 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { DatabaseSync } from "node:sqlite";
 import { systemPrompt } from "../prompts/system.ts";
-import { appendFoodLogEntryTool, executeAppendFoodLogEntryTool } from "./append_food_log_entry.ts";
-import {
-  appendWeightLogEntryTool,
-  executeAppendWeightLogEntryTool,
-} from "./append_weight_log_entry.ts";
 import {
   addKnownIngredientTool,
   executeAddKnownIngredientTool,
 } from "./tool_add_known_ingredient.ts";
+import {
+  appendFoodLogEntryTool,
+  executeAppendFoodLogEntryTool,
+} from "./tool_append_food_log_entry.ts";
+import {
+  appendWeightLogEntryTool,
+  executeAppendWeightLogEntryTool,
+} from "./tool_append_weight_log_entry.ts";
 import { executeReadDocumentTool, readDocumentTool } from "./tool_read_document.ts";
+import { executeSearchFineliTool, searchFineliTool } from "./tool_search_fineli.ts";
 
 type ContentDeltaEvent = {
   type: "content_delta";
@@ -25,14 +29,19 @@ type ToolUseEvent = {
 type AgentEvent = ContentDeltaEvent | ToolUseEvent;
 
 class Agent {
+  private anthropicApiKey: string;
+  private geminiApiKey: string;
+
   private client: Anthropic;
   private db: DatabaseSync;
 
   private largeModel: Anthropic.Model = "claude-sonnet-4-0";
   // private smallModel: Anthropic.Model = "claude-claude-3-5-haiku-latest";
 
-  constructor(apiKey: string, db: DatabaseSync) {
-    this.client = new Anthropic({ apiKey });
+  constructor(anthropicApiKey: string, geminiApiKey: string, db: DatabaseSync) {
+    this.anthropicApiKey = anthropicApiKey;
+    this.geminiApiKey = geminiApiKey;
+    this.client = new Anthropic({ apiKey: anthropicApiKey });
     this.db = db;
   }
 
@@ -74,7 +83,7 @@ class Agent {
         const result: Anthropic.Messages.ContentBlockParam = {
           type: "tool_result",
           tool_use_id: toolUseBlock.id,
-          content: this.callTool(toolUseBlock.name, toolUseBlock.input),
+          content: await this.callTool(toolUseBlock.name, toolUseBlock.input),
         };
         messages.push({ role: "user", content: [result] });
       }
@@ -136,18 +145,20 @@ class Agent {
       appendFoodLogEntryTool(),
       appendWeightLogEntryTool(),
       readDocumentTool(),
+      searchFineliTool(),
     ];
   }
 
-  private callTool(name: string, input: unknown): string {
-    const tools: Record<string, () => string> = {
+  private async callTool(name: string, input: unknown): Promise<string> {
+    const tools: Record<string, () => string | Promise<string>> = {
       [addKnownIngredientTool().name]: () => executeAddKnownIngredientTool(this.db, input),
       [appendFoodLogEntryTool().name]: () => executeAppendFoodLogEntryTool(this.db, input),
       [appendWeightLogEntryTool().name]: () => executeAppendWeightLogEntryTool(this.db, input),
       [readDocumentTool().name]: () => executeReadDocumentTool(this.db, input),
+      [searchFineliTool().name]: () => executeSearchFineliTool(this.geminiApiKey, input),
     };
     if (name in tools) {
-      return tools[name]();
+      return await tools[name]();
     }
     throw new Error(`Unknown tool: ${name}`);
   }

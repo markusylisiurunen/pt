@@ -26,6 +26,7 @@ async function transcribeAudio(geminiApiKey: string, audioFile: File): Promise<s
       maxOutputTokens: 4096,
       responseMimeType: "application/json",
       temperature: 0.2,
+      thinkingConfig: { thinkingBudget: 0 },
     },
   });
   // parse the response

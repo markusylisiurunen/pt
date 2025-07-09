@@ -5,7 +5,8 @@
   "imports": {
     "@anthropic-ai/sdk": "npm:@anthropic-ai/sdk@^0.56.0",
     "@google/genai": "npm:@google/genai@^1.8.0",
+    "@std/csv": "jsr:@std/csv@^1.0.6",
     "@std/http": "jsr:@std/http@1",
-    "zod": "npm:zod@^3.25.74"
+    "zod": "npm:zod@^3.25.76"
   }
 }

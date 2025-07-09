@@ -14,8 +14,11 @@ import { exportRoute } from "./lib/routes/export.ts";
 import { importRoute } from "./lib/routes/import.ts";
 import { transcribeRoute } from "./lib/routes/transcribe.ts";
 
+const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY") ?? "";
+const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY") ?? "";
+
 const password = Deno.env.get("PASSWORD") || crypto.randomUUID();
-const agent = new Agent(Deno.env.get("ANTHROPIC_API_KEY") ?? "", db);
+const agent = new Agent(ANTHROPIC_API_KEY, GEMINI_API_KEY, db);
 
 const chatPattern = new URLPattern({ pathname: "/api/chats/:id" });
 const configPattern = new URLPattern({ pathname: "/api/config" });
