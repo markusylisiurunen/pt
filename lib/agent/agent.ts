@@ -10,6 +10,7 @@ import {
   executeAppendWeightLogEntryTool,
 } from "./tool_append_weight_log_entry.ts";
 import { executeReadDocumentTool, readDocumentTool } from "./tool_read_document.ts";
+import { executeRemoveLogEntryTool, removeLogEntryTool } from "./tool_remove_log_entry.ts";
 import { executeSearchFineliTool, searchFineliTool } from "./tool_search_fineli.ts";
 import {
   executeUpsertKnownIngredientTool,
@@ -118,7 +119,10 @@ class Agent {
 
   private getSystemPrompt(): string {
     const [date, time] = this.getFormattedDateAndTime(new Date());
-    return systemPrompt.replace("{{current_date}}", date).replace("{{current_time}}", time);
+    return systemPrompt
+      .replace("{{current_date}}", date)
+      .replace("{{current_time}}", time)
+      .replace("{{user_info}}", "No information about the user is available."); // TODO: replace with actual user info
   }
 
   private getFormattedDateAndTime(now: Date): [string, string] {
@@ -144,6 +148,7 @@ class Agent {
       appendFoodLogEntryTool(),
       appendWeightLogEntryTool(),
       readDocumentTool(),
+      removeLogEntryTool(),
       searchFineliTool(),
       upsertKnownIngredientTool(),
     ];
@@ -154,6 +159,7 @@ class Agent {
       [appendFoodLogEntryTool().name]: () => executeAppendFoodLogEntryTool(this.db, input),
       [appendWeightLogEntryTool().name]: () => executeAppendWeightLogEntryTool(this.db, input),
       [readDocumentTool().name]: () => executeReadDocumentTool(this.db, input),
+      [removeLogEntryTool().name]: () => executeRemoveLogEntryTool(this.db, input),
       [searchFineliTool().name]: () => executeSearchFineliTool(this.geminiApiKey, input),
       [upsertKnownIngredientTool().name]: () => executeUpsertKnownIngredientTool(this.db, input),
     };

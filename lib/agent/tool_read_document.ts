@@ -6,7 +6,7 @@ import { readDocumentContentBySlug } from "../db/docs.ts";
 // deno-fmt-ignore
 const knownDocuments: Record<string, string> = {
   "config":            `The user's configuration, includes daily food intake targets, weight goals, and other similar information.`,
-  "log":               `An append-only log, including food intake and weight measurements. Use the "Append(.+)LogEntry" tools to add new entries.`,
+  "log":               `A simple chronological log including food intake and weight measurement entries. Use the "Append(.+)LogEntry" tools to add new entries.`,
   "training-program":  `The user's current training program.`,
   "known-ingredients": `A list of user-saved food items and/or ingredients with their nutritional information. You should always prefer these over other sources.`,
 };
