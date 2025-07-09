@@ -31,7 +31,10 @@ const ChatRoute: React.FC = () => {
 
     setTimeout(() => {
       if (!historyRef.current) return;
-      historyRef.current.scrollBy({ top: historyRef.current.scrollHeight, behavior: "smooth" });
+      historyRef.current.scrollTo({
+        top: historyRef.current.scrollHeight,
+        behavior: "smooth",
+      });
     }, 0);
 
     try {
