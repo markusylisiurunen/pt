@@ -10,6 +10,7 @@
     "@google/genai": "npm:@google/genai@^1.8.0",
     "@std/csv": "jsr:@std/csv@^1.0.6",
     "@std/http": "jsr:@std/http@1",
+    "pyodide": "npm:pyodide@^0.28.0",
     "zod": "npm:zod@^3.25.76"
   }
 }

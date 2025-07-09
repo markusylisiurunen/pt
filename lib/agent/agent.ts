@@ -11,6 +11,7 @@ import {
   appendWeightLogEntryTool,
   executeAppendWeightLogEntryTool,
 } from "./tool_append_weight_log_entry.ts";
+import { executeExecutePythonTool, executePythonTool } from "./tool_execute_python.ts";
 import { executeReadDocumentTool, readDocumentTool } from "./tool_read_document.ts";
 import { executeRemoveLogEntryTool, removeLogEntryTool } from "./tool_remove_log_entry.ts";
 import { executeSaveMemoryTool, saveMemoryTool } from "./tool_save_memory.ts";
@@ -169,6 +170,7 @@ class Agent {
     return [
       appendFoodLogEntryTool(),
       appendWeightLogEntryTool(),
+      executePythonTool(),
       readDocumentTool(),
       removeLogEntryTool(),
       saveMemoryTool(),
@@ -181,6 +183,7 @@ class Agent {
     const tools: Record<string, () => string | Promise<string>> = {
       [appendFoodLogEntryTool().name]: () => executeAppendFoodLogEntryTool(this.db, input),
       [appendWeightLogEntryTool().name]: () => executeAppendWeightLogEntryTool(this.db, input),
+      [executePythonTool().name]: () => executeExecutePythonTool(input),
       [readDocumentTool().name]: () => executeReadDocumentTool(this.db, input),
       [removeLogEntryTool().name]: () => executeRemoveLogEntryTool(this.db, input),
       [saveMemoryTool().name]: () => executeSaveMemoryTool(this.db, input),
