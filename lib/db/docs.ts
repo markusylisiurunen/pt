@@ -17,13 +17,13 @@ function writeDocumentContentBySlug(
   db: DatabaseSync,
   slug: string,
   content: string,
-  now = new Date()
+  now = new Date(),
 ): void {
   db.prepare(
     `
     INSERT INTO documents (slug, content, created_at, updated_at) VALUES (?, ?, ?, ?)
     ON CONFLICT (slug) DO UPDATE SET content = ?, updated_at = ?
-    `
+    `,
   ).run(slug, content, now.toISOString(), now.toISOString(), content, now.toISOString());
 }
 

@@ -2,6 +2,9 @@
   "tasks": {
     "dev": "deno serve --env-file --watch -A main.ts"
   },
+  "fmt": {
+    "lineWidth": 100
+  },
   "imports": {
     "@anthropic-ai/sdk": "npm:@anthropic-ai/sdk@^0.56.0",
     "@google/genai": "npm:@google/genai@^1.8.0",

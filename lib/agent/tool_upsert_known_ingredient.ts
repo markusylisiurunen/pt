@@ -5,20 +5,20 @@ import { readDocumentContentBySlug, writeDocumentContentBySlug } from "../db/doc
 import { KnownIngredients } from "../entities/ingredient.ts";
 
 const description = `
-Add a new or update an existing known ingredient to the list of known ingredients.
+Insert a new or update an existing known ingredient.
 `.trim();
 
-function addKnownIngredientTool(): Anthropic.Tool {
+// deno-fmt-ignore
+function upsertKnownIngredientTool(): Anthropic.Tool {
   return {
-    name: "AddKnownIngredient",
+    name: "UpsertKnownIngredient",
     description: description,
     input_schema: {
       type: "object",
       properties: {
         id: {
           type: "string",
-          description:
-            "The ID for an existing ingredient. Only set this field if you want to update an existing ingredient.",
+          description: "The ingredient's ID. Only set this field if you want to update an existing ingredient.",
         },
         name: {
           type: "string",
@@ -35,23 +35,12 @@ function addKnownIngredientTool(): Anthropic.Tool {
         },
         kcal: {
           type: "number",
-          description: "The amount of calories in the ingredient (either per 100 g or 100 ml).",
+          description: "The amount of calories in the ingredient (either per 100g or 100ml).",
           minimum: 0,
         },
         protein: {
           type: "number",
-          description: "The amount of protein in the ingredient (either per 100 g or 100 ml).",
-          minimum: 0,
-        },
-        carbs: {
-          type: "number",
-          description:
-            "The amount of carbohydrates in the ingredient (either per 100 g or 100 ml).",
-          minimum: 0,
-        },
-        fat: {
-          type: "number",
-          description: "The amount of fat in the ingredient (either per 100 g or 100 ml).",
+          description: "The amount of protein in the ingredient (either per 100g or 100ml).",
           minimum: 0,
         },
       },
@@ -60,21 +49,20 @@ function addKnownIngredientTool(): Anthropic.Tool {
   };
 }
 
-function executeAddKnownIngredientTool(db: DatabaseSync, input: unknown): string {
+function executeUpsertKnownIngredientTool(db: DatabaseSync, input: unknown): string {
   const inputSchema = z.object({
     id: z.string().uuid().optional(),
     name: z.string().min(1),
-    brand: z.string().min(1).optional(),
+    brand: z.string().optional(),
     unit: z.enum(["g", "ml"]),
     kcal: z.number().min(0),
     protein: z.number().min(0),
-    carbs: z.number().min(0).optional(),
-    fat: z.number().min(0).optional(),
   });
   const parsed = inputSchema.safeParse(input);
   if (!parsed.success) {
     return "Error: Invalid input.";
   }
+
   const content = readDocumentContentBySlug(db, "known-ingredients");
   const knownIngredients = KnownIngredients.safeParse(JSON.parse(content || "{}"));
   if (!knownIngredients.success) {
@@ -82,18 +70,18 @@ function executeAddKnownIngredientTool(db: DatabaseSync, input: unknown): string
   }
 
   if (parsed.data.id) {
-    knownIngredients.data.ingredients = knownIngredients.data.ingredients.map((i) => {
-      if (i.id !== parsed.data.id) return i;
+    knownIngredients.data.ingredients = knownIngredients.data.ingredients.map((ingredient) => {
+      if (ingredient.id !== parsed.data.id) {
+        return ingredient;
+      }
       return {
-        id: i.id,
+        id: ingredient.id,
         name: parsed.data.name,
         brand: parsed.data.brand,
         unit: parsed.data.unit,
         nutrients: {
           kcal: parsed.data.kcal,
           protein: parsed.data.protein,
-          carbs: parsed.data.carbs,
-          fat: parsed.data.fat,
         },
       };
     });
@@ -106,15 +94,13 @@ function executeAddKnownIngredientTool(db: DatabaseSync, input: unknown): string
       nutrients: {
         kcal: parsed.data.kcal,
         protein: parsed.data.protein,
-        carbs: parsed.data.carbs,
-        fat: parsed.data.fat,
       },
     });
   }
 
   writeDocumentContentBySlug(db, "known-ingredients", JSON.stringify(knownIngredients.data));
 
-  return `Known ingredient ${parsed.data.id ? "updated" : "added"} successfully.`;
+  return `Ingredient ${parsed.data.id ? "updated" : "added"} successfully.`;
 }
 
-export { addKnownIngredientTool, executeAddKnownIngredientTool };
+export { executeUpsertKnownIngredientTool, upsertKnownIngredientTool };

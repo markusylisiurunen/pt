@@ -75,7 +75,7 @@ function migrateDocuments(db: DatabaseSync) {
     if (!existing) {
       const now = new Date().toISOString();
       db.prepare(
-        `INSERT INTO documents (slug, content, created_at, updated_at) VALUES (?, ?, ?, ?)`
+        `INSERT INTO documents (slug, content, created_at, updated_at) VALUES (?, ?, ?, ?)`,
       ).run(document.slug, document.content, now, now);
     }
   }

@@ -6,7 +6,7 @@ RUN npm ci && \
     npm run build
 
 # build the deno app
-FROM denoland/deno:2.4.0
+FROM denoland/deno:2.4.1
 WORKDIR /app
 COPY . .
 RUN deno cache main.ts

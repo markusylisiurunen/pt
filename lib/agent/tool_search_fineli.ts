@@ -17,9 +17,9 @@ const fineliSchema = z.array(
         unit: z.string(),
         description: z.string(),
         mass: z.number(),
-      })
+      }),
     ),
-  })
+  }),
 );
 
 let fineliData: z.infer<typeof fineliSchema> | null = null;
@@ -62,7 +62,10 @@ function searchFineliTool(): Anthropic.Tool {
   };
 }
 
-async function executeSearchFineliTool(geminiApiKey: string, input: unknown): Promise<string> {
+async function executeSearchFineliTool(
+  geminiApiKey: string,
+  input: unknown,
+): Promise<string> {
   const inputSchema = z.object({
     query: z.string(),
   });
@@ -79,16 +82,17 @@ async function executeSearchFineliTool(geminiApiKey: string, input: unknown): Pr
   }
 
   const results = await Promise.all(
-    batches.map((batch) => launchSearchAgent(geminiApiKey, parsed.data.query, batch))
+    batches.map((batch) => launchSearchAgent(geminiApiKey, parsed.data.query, batch)),
   );
 
-  return results.map((result, index) => `Result set ${index + 1}:\n${result}`).join("\n\n");
+  return results.map((result, index) => `Result set ${index + 1}:\n${result}`)
+    .join("\n\n");
 }
 
 async function launchSearchAgent(
   geminiApiKey: string,
   query: string,
-  batch: z.infer<typeof fineliSchema>
+  batch: z.infer<typeof fineliSchema>,
 ) {
   const prompt = `
 You are a food database search engine. Find the best matching food items for: "${query}"
@@ -121,6 +125,8 @@ If no reasonable matches found, return: "Ei osumia"
 
 Do not provide explanations, analysis, or calculations. Only return the formatted list of matching food items. Answer in Finnish.
 
+Never return more than 25 matches, and always order them by relevance to the query.
+
 Database:
 ${formatBatchForPrompt(batch)}
   `.trim();
@@ -144,9 +150,11 @@ function formatBatchForPrompt(batch: z.infer<typeof fineliSchema>) {
     str += `Name: ${item.name} (${item.class}, ${item.process})\n`;
     str += `Kcal: ${item.nutrients.kcal?.toFixed(1) ?? "n/a"}\n`;
     str += `Protein: ${item.nutrients.protein?.toFixed(1) ?? "n/a"}\n`;
-    str += `Units: ${item.units
-      .map((u) => `${u.description} (${u.mass.toFixed(1)} g)`)
-      .join(", ")}\n`;
+    str += `Units: ${
+      item.units
+        .map((u) => `${u.description} (${u.mass.toFixed(1)} g)`)
+        .join(", ")
+    }\n`;
     result.push(str);
   }
   return result.join("\n---\n");

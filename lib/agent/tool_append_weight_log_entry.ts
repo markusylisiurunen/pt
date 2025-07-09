@@ -5,9 +5,10 @@ import { readDocumentContentBySlug, writeDocumentContentBySlug } from "../db/doc
 import { Log } from "../entities/log.ts";
 
 const description = `
-Append a weight log entry to the user's log.
+Append a weight log entry to the user's log. Leave the 'date' field empty unless the user explicitly specifies a date.
 `.trim();
 
+// deno-fmt-ignore
 function appendWeightLogEntryTool(): Anthropic.Tool {
   return {
     name: "AppendWeightLogEntry",
@@ -17,8 +18,7 @@ function appendWeightLogEntryTool(): Anthropic.Tool {
       properties: {
         date: {
           type: "string",
-          description:
-            "An optional date for the log entry in YYYY-MM-DD format (e.g., '2023-10-01'). Defaults to today if not provided.",
+          description: "Optional date for the log entry. If specified, must be in YYYY-MM-DD format (e.g., '2023-10-01'). Defaults to current time.",
         },
         weight: {
           type: "number",
@@ -55,8 +55,10 @@ function executeAppendWeightLogEntryTool(db: DatabaseSync, input: unknown): stri
     return "Error: Failed to parse log document.";
   }
 
+  const id = crypto.randomUUID();
+
   log.data.entries.push({
-    id: crypto.randomUUID(),
+    id: id,
     ts: parsed.data.date ? new Date(parsed.data.date).toISOString() : new Date().toISOString(),
     kind: "weight",
     weight: parsed.data.weight,
@@ -66,7 +68,7 @@ function executeAppendWeightLogEntryTool(db: DatabaseSync, input: unknown): stri
 
   writeDocumentContentBySlug(db, "log", JSON.stringify(log.data));
 
-  return "Weight log entry recorded.";
+  return `Weight log entry recorded (id: ${id}).`;
 }
 
 export { appendWeightLogEntryTool, executeAppendWeightLogEntryTool };

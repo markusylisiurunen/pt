@@ -2,10 +2,6 @@ import Anthropic from "@anthropic-ai/sdk";
 import { DatabaseSync } from "node:sqlite";
 import { systemPrompt } from "../prompts/system.ts";
 import {
-  addKnownIngredientTool,
-  executeAddKnownIngredientTool,
-} from "./tool_add_known_ingredient.ts";
-import {
   appendFoodLogEntryTool,
   executeAppendFoodLogEntryTool,
 } from "./tool_append_food_log_entry.ts";
@@ -15,6 +11,10 @@ import {
 } from "./tool_append_weight_log_entry.ts";
 import { executeReadDocumentTool, readDocumentTool } from "./tool_read_document.ts";
 import { executeSearchFineliTool, searchFineliTool } from "./tool_search_fineli.ts";
+import {
+  executeUpsertKnownIngredientTool,
+  upsertKnownIngredientTool,
+} from "./tool_upsert_known_ingredient.ts";
 
 type ContentDeltaEvent = {
   type: "content_delta";
@@ -111,7 +111,7 @@ class Agent {
         `
         INSERT INTO chats (id, messages, created_at, updated_at) VALUES (?, ?, ?, ?)
         ON CONFLICT (id) DO UPDATE SET messages = ?, updated_at = ?
-        `
+        `,
       )
       .run(chatId, messagesJson, now, now, messagesJson, now);
   }
@@ -141,21 +141,21 @@ class Agent {
 
   private getTools(): Anthropic.Tool[] {
     return [
-      addKnownIngredientTool(),
       appendFoodLogEntryTool(),
       appendWeightLogEntryTool(),
       readDocumentTool(),
       searchFineliTool(),
+      upsertKnownIngredientTool(),
     ];
   }
 
   private async callTool(name: string, input: unknown): Promise<string> {
     const tools: Record<string, () => string | Promise<string>> = {
-      [addKnownIngredientTool().name]: () => executeAddKnownIngredientTool(this.db, input),
       [appendFoodLogEntryTool().name]: () => executeAppendFoodLogEntryTool(this.db, input),
       [appendWeightLogEntryTool().name]: () => executeAppendWeightLogEntryTool(this.db, input),
       [readDocumentTool().name]: () => executeReadDocumentTool(this.db, input),
       [searchFineliTool().name]: () => executeSearchFineliTool(this.geminiApiKey, input),
+      [upsertKnownIngredientTool().name]: () => executeUpsertKnownIngredientTool(this.db, input),
     };
     if (name in tools) {
       return await tools[name]();
