@@ -28,7 +28,7 @@
 .chat-root .history {
   flex: 1 1 0px;
   overflow-y: auto;
-  padding-block: 12px;
+  padding-block: 12px 25dvh;
 }
 
 .chat-root .footer {

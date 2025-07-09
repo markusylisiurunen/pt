@@ -1,5 +1,5 @@
 import { ArrowUpIcon, SquareIcon } from "lucide-react";
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import "./chat.css";
 import { AssistantMessage } from "./components/assistant-message";
@@ -19,6 +19,8 @@ const ChatRoute: React.FC = () => {
   const [input, setInput] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
 
+  const historyRef = useRef<HTMLDivElement>(null);
+
   async function sendMessage() {
     if (!input.trim() || isStreaming) return;
 
@@ -26,6 +28,11 @@ const ChatRoute: React.FC = () => {
     setMessages((prev) => [...prev, userMessage]);
     setInput("");
     setIsStreaming(true);
+
+    setTimeout(() => {
+      if (!historyRef.current) return;
+      historyRef.current.scrollBy({ top: historyRef.current.scrollHeight, behavior: "smooth" });
+    }, 0);
 
     try {
       const token = localStorage.getItem("token");
@@ -101,7 +108,7 @@ const ChatRoute: React.FC = () => {
   return (
     <div className="chat-root">
       <button onClick={() => navigate(-1)}>Takaisin</button>
-      <div className="history">
+      <div ref={historyRef} className="history">
         {messages.map((message, index) => {
           const spacer = index > 0 ? <div style={{ height: 16 }} /> : null;
           switch (message.role) {
