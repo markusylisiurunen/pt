@@ -69,39 +69,39 @@ const WeightGraph: React.FC<WeightGraphProps> = ({ now, history, targetDate, tar
           <LineChart data={chartData} margin={{ top: 2, right: 0, left: 0, bottom: 2 }}>
             <YAxis domain={[domainMin, domainMax]} hide={true} />
             <ReferenceLine
-              stroke="color-mix(in srgb, var(--color-text) 33%, transparent)"
+              stroke="color-mix(in srgb, var(--color-text) 25%, transparent)"
               strokeDasharray="3 3"
               y={domainMax}
             >
               <Label
                 dy={14}
-                fill="color-mix(in srgb, var(--color-text) 75%, transparent)"
+                fill="color-mix(in srgb, var(--color-text) 50%, transparent)"
                 fontFamily="GeistMono, monospace"
                 fontSize={14}
                 letterSpacing="-0.04em"
               >{`${domainMax.toLocaleString("fi-FI", { maximumFractionDigits: 1 })} kg`}</Label>
             </ReferenceLine>
             <ReferenceLine
-              stroke="color-mix(in srgb, var(--color-text) 33%, transparent)"
+              stroke="color-mix(in srgb, var(--color-text) 25%, transparent)"
               strokeDasharray="3 3"
               y={domainMin}
             >
               <Label
                 dy={-14}
-                fill="color-mix(in srgb, var(--color-text) 75%, transparent)"
+                fill="color-mix(in srgb, var(--color-text) 50%, transparent)"
                 fontFamily="GeistMono, monospace"
                 fontSize={14}
                 letterSpacing="-0.04em"
               >{`${domainMin.toLocaleString("fi-FI", { maximumFractionDigits: 1 })} kg`}</Label>
             </ReferenceLine>
             <ReferenceLine
-              stroke="color-mix(in srgb, var(--color-text) 33%, transparent)"
+              stroke="color-mix(in srgb, var(--color-text) 25%, transparent)"
               strokeDasharray="3 3"
               y={history.at(-1)?.weight || -999}
             >
               <Label
                 dy={14}
-                fill="color-mix(in srgb, var(--color-text) 75%, transparent)"
+                fill="color-mix(in srgb, var(--color-text) 50%, transparent)"
                 fontFamily="GeistMono, monospace"
                 fontSize={14}
                 letterSpacing="-0.04em"

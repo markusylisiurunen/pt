@@ -15,7 +15,7 @@
 .home-root .header button {
   align-items: center;
   appearance: none;
-  border-radius: 0px;
+  border-radius: 2px;
   border: none;
   cursor: pointer;
   display: inline-flex;
@@ -28,8 +28,8 @@
 }
 .home-root .header button:first-child {
   background: transparent;
-  border: 1px solid color-mix(in srgb, var(--color-text) 25%, transparent);
-  color: var(--color-text);
+  border: 1px solid color-mix(in srgb, var(--color-text) 20%, transparent);
+  color: color-mix(in srgb, var(--color-text) 75%, transparent);
   flex: 0 0 auto;
 }
 .home-root .header button:last-child {
@@ -46,7 +46,8 @@
 }
 
 .home-root .intake-card {
-  border: 1px solid color-mix(in srgb, var(--color-text) 20%, transparent);
+  border-radius: 2px;
+  border: 1px solid color-mix(in srgb, var(--color-text) 12%, transparent);
   padding-block: 0px 12px;
   padding-inline: 12px;
 }
@@ -81,7 +82,7 @@
   margin-block-end: 1px;
 }
 .home-root .intake-card .intake-progress {
-  background-color: color-mix(in srgb, var(--color-text) 25%, transparent);
+  background: color-mix(in srgb, var(--color-text) 20%, transparent);
   height: 6px;
   width: 100%;
 }
@@ -90,7 +91,8 @@
 }
 
 .home-root .weight-graph {
-  border: 1px solid color-mix(in srgb, var(--color-text) 20%, transparent);
+  border-radius: 2px;
+  border: 1px solid color-mix(in srgb, var(--color-text) 12%, transparent);
   padding-block: 0px 12px;
   padding-inline: 12px;
 }

@@ -10,10 +10,10 @@
 .chat-root > button {
   align-items: center;
   appearance: none;
-  background: color-mix(in srgb, var(--color-text) 12%, transparent);
-  border-radius: 0px;
-  border: none;
-  color: var(--color-text);
+  background: transparent;
+  border-radius: 2px;
+  border: 1px solid color-mix(in srgb, var(--color-text) 20%, transparent);
+  color: color-mix(in srgb, var(--color-text) 75%, transparent);
   cursor: pointer;
   display: inline-flex;
   font-weight: 500;
@@ -38,7 +38,8 @@
 }
 
 .chat-root .footer .input-container {
-  background-color: color-mix(in srgb, currentColor 12%, transparent);
+  background: color-mix(in srgb, var(--color-text) 8%, transparent);
+  border-radius: 2px;
 }
 .chat-root .footer .input-container textarea {
   appearance: none;
@@ -67,7 +68,7 @@
 .chat-root .footer .input-container .actions button {
   align-items: center;
   appearance: none;
-  border-radius: 0px;
+  border-radius: 2px;
   border: none;
   cursor: pointer;
   display: inline-flex;
@@ -83,7 +84,7 @@
 }
 
 .chat-root .footer .input-container .actions button#audio {
-  background-color: color-mix(in srgb, var(--color-text) 8%, transparent);
+  background: color-mix(in srgb, var(--color-text) 8%, transparent);
   color: color-mix(in srgb, var(--color-text) 75%, transparent);
 }
 .chat-root .footer .input-container .actions button#audio:where([data-recording]),
@@ -109,6 +110,7 @@
 }
 .chat-root .user-message p {
   background-color: var(--color-text);
+  border-radius: 2px;
   color: var(--color-bg);
   font-weight: 450;
   margin: 0px;
@@ -133,7 +135,8 @@
 }
 .chat-root .tool-use-message > div {
   align-items: center;
-  border: 1px solid color-mix(in srgb, var(--color-text) 25%, transparent);
+  border-radius: 2px;
+  border: 1px solid color-mix(in srgb, var(--color-text) 12%, transparent);
   display: flex;
   font-family: "GeistMono", monospace;
   font-size: calc(15 / 16 * 1rem);

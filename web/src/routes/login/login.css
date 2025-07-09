@@ -2,6 +2,8 @@
   align-content: end;
   display: grid;
   height: 100dvh;
+  margin-inline: auto;
+  max-width: 640px;
   padding: 12px;
   width: 100%;
 }
@@ -21,8 +23,8 @@
 .login-root input {
   appearance: none;
   background: transparent;
-  border-radius: 0px;
-  border: 1px solid color-mix(in srgb, var(--color-text) 25%, transparent);
+  border-radius: 2px;
+  border: 1px solid color-mix(in srgb, var(--color-text) 20%, transparent);
   color: var(--color-text);
   height: 40px;
   outline: none;
@@ -37,7 +39,7 @@
   align-items: center;
   appearance: none;
   background: var(--color-text);
-  border-radius: 0px;
+  border-radius: 2px;
   border: none;
   color: var(--color-bg);
   cursor: pointer;
