@@ -1,5 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { DatabaseSync } from "node:sqlite";
+import { readDocumentContentBySlug } from "../db/docs.ts";
+import { Config } from "../entities/config.ts";
 import { systemPrompt } from "../prompts/system.ts";
 import {
   appendFoodLogEntryTool,
@@ -11,6 +13,7 @@ import {
 } from "./tool_append_weight_log_entry.ts";
 import { executeReadDocumentTool, readDocumentTool } from "./tool_read_document.ts";
 import { executeRemoveLogEntryTool, removeLogEntryTool } from "./tool_remove_log_entry.ts";
+import { executeSaveMemoryTool, saveMemoryTool } from "./tool_save_memory.ts";
 import { executeSearchFineliTool, searchFineliTool } from "./tool_search_fineli.ts";
 import {
   executeUpsertKnownIngredientTool,
@@ -122,7 +125,8 @@ class Agent {
     return systemPrompt
       .replace("{{current_date}}", date)
       .replace("{{current_time}}", time)
-      .replace("{{user_info}}", "No information about the user is available."); // TODO: replace with actual user info
+      .replace("{{user_info}}", this.getUserInfo())
+      .replace("{{user_memories}}", this.getUserMemories());
   }
 
   private getFormattedDateAndTime(now: Date): [string, string] {
@@ -143,12 +147,31 @@ class Agent {
     ];
   }
 
+  private getUserInfo(): string {
+    const content = readDocumentContentBySlug(this.db, "config");
+    const config = Config.safeParse(JSON.parse(content || "{}"));
+    if (config.success && config.data.userInfo) {
+      return config.data.userInfo;
+    }
+    return "No user information is available.";
+  }
+
+  private getUserMemories(): string {
+    const content = readDocumentContentBySlug(this.db, "config");
+    const config = Config.safeParse(JSON.parse(content || "{}"));
+    if (config.success && config.data.memoryEntries.length > 0) {
+      return config.data.memoryEntries.map((entry) => "- " + entry).join("\n");
+    }
+    return "No user memories are available.";
+  }
+
   private getTools(): Anthropic.Tool[] {
     return [
       appendFoodLogEntryTool(),
       appendWeightLogEntryTool(),
       readDocumentTool(),
       removeLogEntryTool(),
+      saveMemoryTool(),
       searchFineliTool(),
       upsertKnownIngredientTool(),
     ];
@@ -160,6 +183,7 @@ class Agent {
       [appendWeightLogEntryTool().name]: () => executeAppendWeightLogEntryTool(this.db, input),
       [readDocumentTool().name]: () => executeReadDocumentTool(this.db, input),
       [removeLogEntryTool().name]: () => executeRemoveLogEntryTool(this.db, input),
+      [saveMemoryTool().name]: () => executeSaveMemoryTool(this.db, input),
       [searchFineliTool().name]: () => executeSearchFineliTool(this.geminiApiKey, input),
       [upsertKnownIngredientTool().name]: () => executeUpsertKnownIngredientTool(this.db, input),
     };

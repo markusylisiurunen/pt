@@ -45,6 +45,8 @@ function migrateDocuments(db: DatabaseSync) {
   inThreeMonths.setMonth(inThreeMonths.getMonth() + 3);
 
   const defaultConfig: Config = {
+    userInfo: null,
+    memoryEntries: [],
     targetDailyIntakeCalories: 1800,
     targetDailyIntakeProtein: 160,
     targetWeightDate: inThreeMonths.toISOString(),

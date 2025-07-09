@@ -31,6 +31,12 @@ The user has provided the following information about themselves and their prefe
 <user_info>
 {{user_info}}
 </user_info>
+
+Over the course of your interactions with the user, the following memories have been saved. You can reference them to provide personalized advice and tailored responses:
+
+<user_memories>
+{{user_memories}}
+</user_memories>
 `.trim();
 
 export { systemPrompt };
