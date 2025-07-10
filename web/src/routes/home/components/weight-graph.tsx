@@ -1,3 +1,4 @@
+import { GoalIcon } from "lucide-react";
 import React, { useMemo } from "react";
 import { Label, Line, LineChart, ReferenceLine, ResponsiveContainer, YAxis } from "recharts";
 
@@ -81,12 +82,12 @@ const WeightGraph: React.FC<WeightGraphProps> = ({ now, history, targetDate, tar
       <div className="header">
         <h3>Painon kehitys</h3>
         <span>
-          Tavoite: -
+          -
           {calculateWeeklyDeficit(now, domainCurrent, targetDate, targetWeight).toLocaleString(
             "fi-FI",
             { maximumFractionDigits: 2 }
           )}{" "}
-          kg/vko
+          kg/vko <GoalIcon size={16} strokeWidth={2.25} />
         </span>
       </div>
       <div className="chart-container">

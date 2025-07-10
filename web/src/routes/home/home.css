@@ -8,12 +8,12 @@
 }
 
 /* home header */
-.home-root .header {
+.home-root > .header {
   display: flex;
   gap: 8px;
   margin-block-end: 12px;
 }
-.home-root .header button {
+.home-root > .header button {
   align-items: center;
   appearance: none;
   background: transparent;
@@ -28,12 +28,12 @@
   outline: none;
   padding: 0px 12px;
 }
-.home-root .header button:first-child {
+.home-root > .header button:first-child {
   border: 1px solid var(--color-border-muted);
   color: var(--color-text);
   flex: 0 0 auto;
 }
-.home-root .header button:last-child {
+.home-root > .header button:last-child {
   background: var(--color-bg-btn-primary);
   color: var(--color-text-on-bg-btn-primary);
   flex: 1 1 auto;
@@ -46,18 +46,32 @@
   grid-template-columns: repeat(2, 1fr);
   margin-block-end: 12px;
 }
+@media (width < 640px) {
+  .home-root .intake {
+    grid-template-columns: 1fr;
+  }
+}
 .home-root .intake-card {
   border-radius: var(--radius-lg);
   border: 1px solid var(--color-border-muted);
   padding-block: 12px;
   padding-inline: 12px;
 }
-.home-root .intake-card > h3 {
+.home-root .intake-card .header {
+  align-items: center;
+  display: flex;
+  gap: 4px;
+}
+.home-root .intake-card .header h3,
+.home-root .intake-card .header span {
   font-family: "GeistMono", monospace;
   font-size: calc(15 / 16 * 1rem);
   font-weight: 425;
   letter-spacing: -0.04em;
   margin: 0px;
+}
+.home-root .intake-card .header span {
+  opacity: 0.5;
 }
 .home-root .intake-values {
   align-items: flex-end;
@@ -66,7 +80,7 @@
   gap: 2px;
   justify-content: center;
   letter-spacing: -0.04em;
-  margin-block: 12px;
+  margin-block: 12px 16px;
 }
 .home-root .intake-values > :nth-child(1) {
   font-size: calc(27 / 16 * 1rem);
@@ -116,8 +130,14 @@
   margin: 0px;
 }
 .home-root .weight-graph .header span {
+  align-items: center;
+  display: flex;
   font-size: calc(14 / 16 * 1rem);
+  gap: 8px;
   opacity: 0.75;
+}
+.home-root .weight-graph .header span svg {
+  opacity: 0.5;
 }
 .home-root .weight-graph .chart-container {
   aspect-ratio: 16 / 9;
