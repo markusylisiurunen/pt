@@ -6,6 +6,20 @@ function formatDate(dateStr: string): string {
   return date.toLocaleDateString("fi-FI", { day: "2-digit", month: "2-digit" });
 }
 
+function calculateWeeklyDeficit(
+  now: string,
+  currentWeight: number,
+  targetDate: string,
+  targetWeight: number
+): number {
+  const nowDateObj = new Date(now);
+  const targetDateObj = new Date(targetDate);
+  const DAY = 24 * 60 * 60 * 1000;
+  const daysUntilTarget = Math.ceil((targetDateObj.getTime() - nowDateObj.getTime()) / DAY);
+  const totalWeightLoss = currentWeight - targetWeight;
+  return (totalWeightLoss / daysUntilTarget) * 7;
+}
+
 type WeightGraphProps = {
   now: string;
   history: { date: string; weight: number }[];
@@ -15,6 +29,7 @@ type WeightGraphProps = {
 const WeightGraph: React.FC<WeightGraphProps> = ({ now, history, targetDate, targetWeight }) => {
   const domainMin = Math.min(...history.map((d) => d.weight), targetWeight);
   const domainMax = Math.max(...history.map((d) => d.weight), targetWeight);
+  const domainCurrent = history.at(-1)?.weight || 0;
 
   const chartData = useMemo(() => {
     const DAY = 24 * 60 * 60 * 1000;
@@ -63,51 +78,50 @@ const WeightGraph: React.FC<WeightGraphProps> = ({ now, history, targetDate, tar
 
   return (
     <div className="weight-graph">
-      <h3>Painon kehitys</h3>
+      <div className="header">
+        <h3>Painon kehitys</h3>
+        <span>
+          Tavoite: -
+          {calculateWeeklyDeficit(now, domainCurrent, targetDate, targetWeight).toLocaleString(
+            "fi-FI",
+            { maximumFractionDigits: 2 }
+          )}{" "}
+          kg/vko
+        </span>
+      </div>
       <div className="chart-container">
         <ResponsiveContainer>
           <LineChart data={chartData} margin={{ top: 2, right: 0, left: 0, bottom: 2 }}>
             <YAxis domain={[domainMin, domainMax]} hide={true} />
-            <ReferenceLine
-              stroke="color-mix(in srgb, var(--color-text) 25%, transparent)"
-              strokeDasharray="3 3"
-              y={domainMax}
-            >
+            <ReferenceLine stroke="var(--color-border)" strokeDasharray="4 4" y={domainMax}>
               <Label
                 dy={14}
-                fill="color-mix(in srgb, var(--color-text) 50%, transparent)"
+                fill="var(--color-text)"
+                fillOpacity={0.75}
                 fontFamily="GeistMono, monospace"
                 fontSize={14}
                 letterSpacing="-0.04em"
               >{`${domainMax.toLocaleString("fi-FI", { maximumFractionDigits: 1 })} kg`}</Label>
             </ReferenceLine>
-            <ReferenceLine
-              stroke="color-mix(in srgb, var(--color-text) 25%, transparent)"
-              strokeDasharray="3 3"
-              y={domainMin}
-            >
+            <ReferenceLine stroke="var(--color-border)" strokeDasharray="4 4" y={domainMin}>
               <Label
                 dy={-14}
-                fill="color-mix(in srgb, var(--color-text) 50%, transparent)"
+                fill="var(--color-text)"
+                fillOpacity={0.75}
                 fontFamily="GeistMono, monospace"
                 fontSize={14}
                 letterSpacing="-0.04em"
               >{`${domainMin.toLocaleString("fi-FI", { maximumFractionDigits: 1 })} kg`}</Label>
             </ReferenceLine>
-            <ReferenceLine
-              stroke="color-mix(in srgb, var(--color-text) 25%, transparent)"
-              strokeDasharray="3 3"
-              y={history.at(-1)?.weight || -999}
-            >
+            <ReferenceLine stroke="var(--color-border)" strokeDasharray="4 4" y={domainCurrent}>
               <Label
-                dy={14}
-                fill="color-mix(in srgb, var(--color-text) 50%, transparent)"
+                dy={domainCurrent > 0.5 * (domainMin + domainMax) ? 14 : -14}
+                fill="var(--color-text)"
+                fillOpacity={1}
                 fontFamily="GeistMono, monospace"
                 fontSize={14}
                 letterSpacing="-0.04em"
-              >{`${(history.at(-1)?.weight || -999).toLocaleString("fi-FI", {
-                maximumFractionDigits: 1,
-              })} kg`}</Label>
+              >{`${domainCurrent.toLocaleString("fi-FI", { maximumFractionDigits: 1 })} kg`}</Label>
             </ReferenceLine>
             <Line
               activeDot={false}
@@ -116,7 +130,9 @@ const WeightGraph: React.FC<WeightGraphProps> = ({ now, history, targetDate, tar
               dot={false}
               isAnimationActive={false}
               stroke="var(--color-text)"
-              type="monotone"
+              strokeOpacity={1}
+              strokeWidth={1.5}
+              type="basis"
             />
             <Line
               activeDot={false}
@@ -126,7 +142,9 @@ const WeightGraph: React.FC<WeightGraphProps> = ({ now, history, targetDate, tar
               isAnimationActive={false}
               stroke="var(--color-text)"
               strokeDasharray="3 3"
-              type="monotone"
+              strokeOpacity={0.75}
+              strokeWidth={1.5}
+              type="basis"
             />
           </LineChart>
         </ResponsiveContainer>

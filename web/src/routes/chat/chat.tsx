@@ -1,4 +1,4 @@
-import { ArrowUpIcon, ChevronLeftIcon, SquareIcon } from "lucide-react";
+import { ArrowUpIcon, ChevronLeftIcon, LoaderCircleIcon } from "lucide-react";
 import React, { useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import "./chat.css";
@@ -190,7 +190,7 @@ const ChatRoute: React.FC = () => {
           />
           <button id="send" onClick={sendMessage} disabled={isStreaming}>
             {isStreaming ? (
-              <SquareIcon size={19} strokeWidth={2.25} />
+              <LoaderCircleIcon size={19} strokeWidth={2.25} />
             ) : (
               <ArrowUpIcon size={19} strokeWidth={2.25} />
             )}

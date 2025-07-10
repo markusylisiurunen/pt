@@ -16,9 +16,10 @@ const IntakeCard: React.FC<IntakeCardProps> = ({
 }) => {
   function formatNumber(v: number, suffix?: string): string {
     return (
-      v.toLocaleString("fi-FI", { maximumFractionDigits: maximumFractionDigits ?? 1 }) +
-      (suffix ? ` ${suffix}` : "")
-    );
+      v
+        .toLocaleString("fi-FI", { maximumFractionDigits: maximumFractionDigits ?? 1 })
+        .replace(/\s/, "") + ` ${suffix || ""}`
+    ).trim();
   }
   return (
     <div className="intake-card">
@@ -31,7 +32,7 @@ const IntakeCard: React.FC<IntakeCardProps> = ({
       <div className="intake-progress">
         <div
           style={{
-            background: current > target ? "red" : "var(--color-text)",
+            background: "var(--color-border-accent)",
             width: `${Math.min((current / target) * 100, 100)}%`,
           }}
         />

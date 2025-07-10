@@ -7,115 +7,130 @@
   padding-inline: 12px;
 }
 
+/* home header */
 .home-root .header {
   display: flex;
-  gap: 12px;
+  gap: 8px;
   margin-block-end: 12px;
 }
 .home-root .header button {
   align-items: center;
   appearance: none;
-  border-radius: 2px;
+  background: transparent;
+  border-radius: var(--radius-md);
   border: none;
   cursor: pointer;
-  display: inline-flex;
+  display: flex;
   font-weight: 500;
   height: 40px;
-  justify-content: center;
+  justify-content: space-between;
   margin: 0px;
   outline: none;
   padding: 0px 12px;
 }
 .home-root .header button:first-child {
-  background: transparent;
-  border: 1px solid color-mix(in srgb, var(--color-text) 20%, transparent);
-  color: color-mix(in srgb, var(--color-text) 75%, transparent);
+  border: 1px solid var(--color-border-muted);
+  color: var(--color-text);
   flex: 0 0 auto;
 }
 .home-root .header button:last-child {
-  background: var(--color-text);
-  color: var(--color-bg);
+  background: var(--color-bg-btn-primary);
+  color: var(--color-text-on-bg-btn-primary);
   flex: 1 1 auto;
 }
 
+/* food intake */
 .home-root .intake {
   display: grid;
   gap: 12px;
   grid-template-columns: repeat(2, 1fr);
   margin-block-end: 12px;
 }
-
 .home-root .intake-card {
-  border-radius: 2px;
-  border: 1px solid color-mix(in srgb, var(--color-text) 12%, transparent);
-  padding-block: 0px 12px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border-muted);
+  padding-block: 12px;
   padding-inline: 12px;
 }
 .home-root .intake-card > h3 {
   font-family: "GeistMono", monospace;
-  font-size: calc(14 / 16 * 1rem);
-  font-weight: 400;
+  font-size: calc(15 / 16 * 1rem);
+  font-weight: 425;
   letter-spacing: -0.04em;
-  margin-block: 12px 0px;
+  margin: 0px;
 }
-.home-root .intake-card .intake-values {
+.home-root .intake-values {
   align-items: flex-end;
   display: flex;
+  font-family: "GeistMono", monospace;
   gap: 2px;
   justify-content: center;
-  margin-block: 12px 16px;
+  letter-spacing: -0.04em;
+  margin-block: 12px;
 }
-.home-root .intake-card .intake-values > :nth-child(1) {
-  font-size: calc(24 / 16 * 1rem);
+.home-root .intake-values > :nth-child(1) {
+  font-size: calc(27 / 16 * 1rem);
   font-weight: 600;
   line-height: 1;
 }
-@media (width < 768px) {
-  .home-root .intake-card .intake-values > :nth-child(1) {
-    font-size: calc(21 / 16 * 1rem);
+@media (width < 640px) {
+  .home-root .intake-values > :nth-child(1) {
+    font-size: calc(24 / 16 * 1rem);
   }
 }
-.home-root .intake-card .intake-values > :not(:nth-child(1)) {
-  color: color-mix(in srgb, var(--color-text) 75%, transparent);
-  font-weight: 500;
+.home-root .intake-values > :not(:nth-child(1)) {
   line-height: 1;
-  margin-block-end: 1px;
+  margin-block-end: 2px;
+  opacity: 0.75;
 }
-.home-root .intake-card .intake-progress {
-  background: color-mix(in srgb, var(--color-text) 20%, transparent);
+.home-root .intake-progress {
+  background: var(--color-border-muted);
+  border-radius: 999px;
   height: 6px;
   width: 100%;
 }
-.home-root .intake-card .intake-progress > div {
+.home-root .intake-progress > div {
+  border-radius: 999px;
   height: 100%;
 }
 
+/* weight graph */
 .home-root .weight-graph {
-  border-radius: 2px;
-  border: 1px solid color-mix(in srgb, var(--color-text) 12%, transparent);
-  padding-block: 0px 12px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border-accent);
+  padding-block: 12px;
   padding-inline: 12px;
 }
-.home-root .weight-graph > h3 {
+.home-root .weight-graph .header {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  margin-block: 0px 12px;
+}
+.home-root .weight-graph .header h3,
+.home-root .weight-graph .header span {
   font-family: "GeistMono", monospace;
-  font-size: calc(14 / 16 * 1rem);
-  font-weight: 400;
+  font-size: calc(15 / 16 * 1rem);
+  font-weight: 425;
   letter-spacing: -0.04em;
-  margin-block: 12px;
+  margin: 0px;
+}
+.home-root .weight-graph .header span {
+  font-size: calc(14 / 16 * 1rem);
+  opacity: 0.75;
 }
 .home-root .weight-graph .chart-container {
   aspect-ratio: 16 / 9;
   width: 100%;
 }
-.home-root .weight-graph svg {
+.home-root .weight-graph .chart-container svg {
   outline: none;
 }
 .home-root .weight-graph .dates {
-  color: color-mix(in srgb, var(--color-text) 75%, transparent);
   display: flex;
   font-family: "GeistMono", monospace;
   font-size: calc(14 / 16 * 1rem);
-  font-weight: 400;
+  font-weight: 425;
   justify-content: space-between;
   letter-spacing: -0.04em;
   margin-block-start: 8px;

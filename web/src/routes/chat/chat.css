@@ -23,7 +23,7 @@
   display: flex;
   font-weight: 500;
   gap: 3px;
-  height: 36px;
+  height: 40px;
   outline: none;
   padding-block: 0px;
   padding-inline: 4px 8px;
@@ -91,6 +91,17 @@
 .chat-root .inputbox #send {
   background: var(--color-bg-btn-primary);
   color: var(--color-text-on-bg-btn-primary);
+}
+.chat-root .inputbox #send:disabled {
+  background: color-mix(in srgb, var(--color-bg-btn-primary) 75%, transparent);
+}
+.chat-root .inputbox #send .lucide-loader-circle {
+  animation: send-loader-circle-spin 666ms linear infinite;
+}
+/* prettier-ignore */
+@keyframes send-loader-circle-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
 .chat-root .inputbox #audio {

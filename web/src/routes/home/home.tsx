@@ -1,3 +1,4 @@
+import { ArrowRightIcon } from "lucide-react";
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import { IntakeCard } from "./components/intake-card";
@@ -62,7 +63,10 @@ const HomeRoute: React.FC = () => {
     <div className="home-root">
       <div className="header">
         <button onClick={handleLogout}>Poistu</button>
-        <button onClick={() => navigate(`/chats/${crypto.randomUUID()}`)}>Keskustele</button>
+        <button onClick={() => navigate(`/chats/${crypto.randomUUID()}`)}>
+          <span>Keskustele</span>
+          <ArrowRightIcon size={19} strokeWidth={2.25} />
+        </button>
       </div>
       <div className="intake">
         <IntakeCard
