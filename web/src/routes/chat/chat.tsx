@@ -1,6 +1,7 @@
 import { ArrowUpIcon, ChevronLeftIcon, LoaderCircleIcon } from "lucide-react";
 import React, { useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router";
+import { getSafeAreaInsets } from "../../util/safe-area";
 import "./chat.css";
 import { AssistantMessage } from "./components/assistant-message";
 import { AudioButton } from "./components/audio-button";
@@ -173,7 +174,7 @@ const ChatRoute: React.FC = () => {
           }
         })}
       </div>
-      <div className="inputbox">
+      <div className="inputbox" style={{ marginBlockEnd: getSafeAreaInsets().bottom > 0 ? 0 : 12 }}>
         <textarea
           value={input}
           onChange={(e) => setInput(e.target.value)}

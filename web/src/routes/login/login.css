@@ -1,7 +1,7 @@
 .login-root {
   display: flex;
   flex-direction: column;
-  height: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+  height: calc(100lvh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
   margin-inline: auto;
   max-width: 640px;
   padding: 12px;
