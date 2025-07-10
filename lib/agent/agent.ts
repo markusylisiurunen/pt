@@ -52,11 +52,12 @@ class Agent {
 
   async *send(id: string, content: string): AsyncGenerator<AgentEvent> {
     const messages: Anthropic.MessageParam[] = this.loadChatHistory(id);
-    messages.push({ role: "user", content: content });
+    messages.push({ role: "user", content: [{ type: "text", text: content }] });
 
     let turnsLeft = 16;
 
     while (turnsLeft-- > 0) {
+      this.refreshCacheBreakpoints(messages);
       const stream = this.client.messages.stream({
         max_tokens: 8192,
         messages: messages,
@@ -164,6 +165,56 @@ class Agent {
       return config.data.memoryEntries.map((entry) => "- " + entry).join("\n");
     }
     return "No user memories are available.";
+  }
+
+  private refreshCacheBreakpoints(messages: Anthropic.MessageParam[]) {
+    // reset cache control breakpoints
+    for (let i = 0; i < messages.length; i++) {
+      if (messages[i].role !== "user") continue;
+      if (!Array.isArray(messages[i].content)) continue;
+      for (let u = 0; u < messages[i].content.length; u++) {
+        if ((messages[i].content[u] as Anthropic.ContentBlockParam).type === "text") {
+          (messages[i].content[u] as Anthropic.TextBlockParam).cache_control = undefined;
+        }
+        if ((messages[i].content[u] as Anthropic.ContentBlockParam).type === "tool_result") {
+          (messages[i].content[u] as Anthropic.ToolResultBlockParam).cache_control = undefined;
+        }
+      }
+    }
+
+    // set the cache breakpoint for the last user message
+    for (let i = messages.length - 1; i >= 0; i--) {
+      if (messages[i].role !== "user") continue;
+      if (!Array.isArray(messages[i].content)) continue;
+      let found = false;
+      for (let u = messages[i].content.length - 1; u >= 0; u--) {
+        if (found) break;
+        if ((messages[i].content[u] as Anthropic.ContentBlockParam).type === "text") {
+          found = true;
+          (messages[i].content[u] as Anthropic.TextBlockParam).cache_control = {
+            type: "ephemeral",
+          };
+        }
+      }
+      if (found) break;
+    }
+
+    // set the cache breakpoint for the last tool result
+    for (let i = messages.length - 1; i >= 0; i--) {
+      if (messages[i].role !== "user") continue;
+      if (!Array.isArray(messages[i].content)) continue;
+      let found = false;
+      for (let u = messages[i].content.length - 1; u >= 0; u--) {
+        if (found) break;
+        if ((messages[i].content[u] as Anthropic.ContentBlockParam).type === "tool_result") {
+          found = true;
+          (messages[i].content[u] as Anthropic.ToolResultBlockParam).cache_control = {
+            type: "ephemeral",
+          };
+        }
+      }
+      if (found) break;
+    }
   }
 
   private getTools(): Anthropic.Tool[] {
