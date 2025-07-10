@@ -1,3 +1,4 @@
+import { ArrowRightIcon } from "lucide-react";
 import React, { useState } from "react";
 import { useNavigate } from "react-router";
 import "./login.css";
@@ -14,6 +15,7 @@ const LoginRoute: React.FC = () => {
 
   return (
     <div className="login-root">
+      <div className="spacer" />
       <div className="form">
         <h1>Kirjaudu sisään</h1>
         <input
@@ -22,7 +24,10 @@ const LoginRoute: React.FC = () => {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
         />
-        <button onClick={handleLogin}>Kirjaudu</button>
+        <button onClick={handleLogin}>
+          <span>Kirjaudu</span>
+          <ArrowRightIcon size={19} strokeWidth={2.25} />
+        </button>
       </div>
     </div>
   );

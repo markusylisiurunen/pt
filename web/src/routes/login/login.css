@@ -1,54 +1,58 @@
 .login-root {
-  align-content: end;
-  display: grid;
+  display: flex;
+  flex-direction: column;
   height: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
   margin-inline: auto;
   max-width: 640px;
   padding: 12px;
   width: 100%;
 }
-
+.login-root .spacer {
+  flex: 1 1 0px;
+}
 .login-root .form {
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border-accent);
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  flex: 0 0 auto;
+  padding: 12px;
 }
-
 .login-root h1 {
-  font-size: calc(32 / 16 * 1rem);
-  font-weight: 600;
-  margin: 0px;
+  font-size: calc(24 / 16 * 1rem);
+  font-weight: 700;
+  margin-block: 0px 12px;
 }
-
 .login-root input {
   appearance: none;
   background: transparent;
-  border-radius: 2px;
-  border: 1px solid color-mix(in srgb, var(--color-text) 20%, transparent);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
   color: var(--color-text);
   height: 40px;
+  margin-block-end: 12px;
   outline: none;
-  padding: 0px 12px;
+  padding-block: 0px;
+  padding-inline: 12px;
   width: 100%;
 }
 .login-root input::placeholder {
-  color: color-mix(in srgb, var(--color-text) 50%, transparent);
+  color: var(--color-text-placeholder);
 }
-
 .login-root button {
   align-items: center;
   appearance: none;
-  background: var(--color-text);
-  border-radius: 2px;
+  background: var(--color-bg-btn-primary);
+  border-radius: var(--radius-md);
   border: none;
-  color: var(--color-bg);
+  color: var(--color-text-on-bg-btn-primary);
   cursor: pointer;
-  display: inline-flex;
+  display: flex;
   font-weight: 500;
   height: 40px;
-  justify-content: center;
-  margin-block-end: 12px;
+  justify-content: space-between;
   outline: none;
-  padding: 0px;
+  padding-block: 0px;
+  padding-inline: 12px;
   width: 100%;
 }
