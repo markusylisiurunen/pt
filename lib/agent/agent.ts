@@ -4,6 +4,11 @@ import { readDocumentContentBySlug } from "../db/docs.ts";
 import { Config } from "../entities/config.ts";
 import { systemPrompt } from "../prompts/system.ts";
 import {
+  getDateAtTimeZone,
+  getTimeAtTimeZone,
+  getTimeZoneOffsetInMinutes,
+} from "../util/datetime.ts";
+import {
   appendFoodLogEntryTool,
   executeAppendFoodLogEntryTool,
 } from "./tool_append_food_log_entry.ts";
@@ -123,30 +128,14 @@ class Agent {
   }
 
   private getSystemPrompt(): string {
-    const [date, time] = this.getFormattedDateAndTime(new Date());
+    const now = new Date().toISOString();
     return systemPrompt
-      .replace("{{current_date}}", date)
-      .replace("{{current_time}}", time)
+      .replace("{{current_date}}", getDateAtTimeZone(now, "Europe/Helsinki"))
+      .replace("{{current_time}}", getTimeAtTimeZone(now, "Europe/Helsinki"))
+      .replace("{{current_time_zone}}", "Europe/Helsinki")
+      .replace("{{current_time_zone_offset}}", "" + getTimeZoneOffsetInMinutes("Europe/Helsinki"))
       .replace("{{user_info}}", this.getUserInfo())
       .replace("{{user_memories}}", this.getUserMemories());
-  }
-
-  private getFormattedDateAndTime(now: Date): [string, string] {
-    const formatter = new Intl.DateTimeFormat("en-US", {
-      timeZone: "Europe/Helsinki",
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: false,
-    });
-    const parts = formatter.formatToParts(now);
-    const getValue = (type: string) => parts.find((p) => p.type === type)?.value || "";
-    return [
-      `${getValue("year")}-${getValue("month")}-${getValue("day")}`,
-      `${getValue("hour")}:${getValue("minute")}`,
-    ];
   }
 
   private getUserInfo(): string {

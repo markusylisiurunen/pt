@@ -2,6 +2,7 @@ import { DatabaseSync } from "node:sqlite";
 import { readDocumentContentBySlug } from "../db/docs.ts";
 import { Config } from "../entities/config.ts";
 import { Log } from "../entities/log.ts";
+import { getDateAtTimeZone } from "../util/datetime.ts";
 
 interface Route {
   (req: Request): Response | Promise<Response>;
@@ -24,16 +25,16 @@ function configRoute(db: DatabaseSync): Route {
       return new Response("Invalid log document", { status: 500 });
     }
     // calculate the food intake for today
-    const nowDateStr = new Date().toISOString().split("T")[0];
+    const nowDateStr = getDateAtTimeZone(new Date().toISOString(), "Europe/Helsinki");
     const kcalToday = log.data.entries.reduce((sum, i) => {
       if (i.kind !== "food") return sum;
-      const dateStr = new Date(i.ts).toISOString().split("T")[0];
+      const dateStr = getDateAtTimeZone(i.ts, "Europe/Helsinki");
       if (dateStr !== nowDateStr) return sum;
       return sum + (i.kcal ?? 0);
     }, 0);
     const proteinToday = log.data.entries.reduce((sum, i) => {
       if (i.kind !== "food") return sum;
-      const dateStr = new Date(i.ts).toISOString().split("T")[0];
+      const dateStr = getDateAtTimeZone(i.ts, "Europe/Helsinki");
       if (dateStr !== nowDateStr) return sum;
       return sum + (i.protein ?? 0);
     }, 0);

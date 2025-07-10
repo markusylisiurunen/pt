@@ -3,6 +3,7 @@ import { DatabaseSync } from "node:sqlite";
 import z from "zod";
 import { readDocumentContentBySlug, writeDocumentContentBySlug } from "../db/docs.ts";
 import { Config } from "../entities/config.ts";
+import { getDateAtTimeZone } from "../util/datetime.ts";
 
 const description = `
 Save a memory entry to the user's configuration. This automatically adds the current date as a prefix and stores the entry in the user's memory list for future reference.
@@ -49,7 +50,7 @@ function executeSaveMemoryTool(db: DatabaseSync, input: unknown): string {
     return "Error: Failed to parse config document.";
   }
 
-  const dateStr = new Date().toISOString().split("T")[0];
+  const dateStr = getDateAtTimeZone(new Date().toISOString(), "Europe/Helsinki");
   config.data.memoryEntries.push(`${dateStr}: ${parsed.data.memory}`);
 
   writeDocumentContentBySlug(db, "config", JSON.stringify(config.data));
