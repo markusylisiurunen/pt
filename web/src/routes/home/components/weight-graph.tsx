@@ -11,7 +11,7 @@ function calculateWeeklyDeficit(
   now: string,
   currentWeight: number,
   targetDate: string,
-  targetWeight: number
+  targetWeight: number,
 ): number {
   const nowDateObj = new Date(now);
   const targetDateObj = new Date(targetDate);
@@ -37,11 +37,11 @@ const WeightGraph: React.FC<WeightGraphProps> = ({ now, history, targetDate, tar
 
     const minDate = Math.min(
       ...history.map((d) => new Date(d.date).getTime()),
-      new Date(targetDate).getTime()
+      new Date(targetDate).getTime(),
     );
     const maxDate = Math.max(
       ...history.map((d) => new Date(d.date).getTime()),
-      new Date(targetDate).getTime()
+      new Date(targetDate).getTime(),
     );
 
     const data: {
@@ -85,7 +85,7 @@ const WeightGraph: React.FC<WeightGraphProps> = ({ now, history, targetDate, tar
           -
           {calculateWeeklyDeficit(now, domainCurrent, targetDate, targetWeight).toLocaleString(
             "fi-FI",
-            { maximumFractionDigits: 2 }
+            { maximumFractionDigits: 2 },
           )}{" "}
           kg/vko <GoalIcon size={16} strokeWidth={2.25} />
         </span>

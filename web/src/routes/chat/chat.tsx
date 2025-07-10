@@ -29,7 +29,10 @@ const ChatRoute: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const [messages, setMessages] = useState<Message[]>([
-    { role: "assistant", content: GREETINGS[Math.floor(Math.random() * GREETINGS.length)] },
+    {
+      role: "assistant",
+      content: GREETINGS[Math.floor(Math.random() * GREETINGS.length)],
+    },
   ]);
   const [input, setInput] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
@@ -96,7 +99,10 @@ const ChatRoute: React.FC = () => {
                   if (lastMessage?.role === "assistant") {
                     lastMessage.content = currentAssistantMessage;
                   } else {
-                    newMessages.push({ role: "assistant", content: currentAssistantMessage });
+                    newMessages.push({
+                      role: "assistant",
+                      content: currentAssistantMessage,
+                    });
                   }
                   return newMessages;
                 });

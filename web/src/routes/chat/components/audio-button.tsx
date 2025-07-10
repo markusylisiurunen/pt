@@ -19,11 +19,17 @@ interface TranscriptionError extends Error {
 
 function checkBrowserSupport(): { supported: boolean; error?: string } {
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-    return { supported: false, error: "Your browser doesn't support audio recording" };
+    return {
+      supported: false,
+      error: "Your browser doesn't support audio recording",
+    };
   }
 
   if (!window.MediaRecorder) {
-    return { supported: false, error: "Your browser doesn't support MediaRecorder" };
+    return {
+      supported: false,
+      error: "Your browser doesn't support MediaRecorder",
+    };
   }
 
   return { supported: true };
@@ -32,7 +38,9 @@ function checkBrowserSupport(): { supported: boolean; error?: string } {
 async function checkMicrophonePermission(): Promise<PermissionState | null> {
   if ("permissions" in navigator && "query" in navigator.permissions) {
     try {
-      const result = await navigator.permissions.query({ name: "microphone" as PermissionName });
+      const result = await navigator.permissions.query({
+        name: "microphone" as PermissionName,
+      });
       return result.state;
     } catch {
       return null;
@@ -60,7 +68,7 @@ async function transcribeAudio(audioBlob: Blob): Promise<string> {
     }
 
     const error = new Error(
-      `Transcription failed: ${resp.status} ${resp.statusText}`
+      `Transcription failed: ${resp.status} ${resp.statusText}`,
     ) as TranscriptionError;
     error.type = resp.status >= 500 ? "network" : "transcription";
     throw error;
@@ -119,7 +127,7 @@ const AudioButton: React.FC<AudioButtonProps> = ({ onTranscript, onError }) => {
     const permissionStatus = await checkMicrophonePermission();
     if (permissionStatus === "denied") {
       const error = new Error(
-        "Microphone permission denied. Please allow microphone access in your browser settings and try again."
+        "Microphone permission denied. Please allow microphone access in your browser settings and try again.",
       ) as TranscriptionError;
       error.type = "permission";
       setState(RECORDING_STATE.ERROR);
@@ -161,7 +169,7 @@ const AudioButton: React.FC<AudioButtonProps> = ({ onTranscript, onError }) => {
 
         if (actualRecordingTime < MIN_RECORDING_TIME) {
           const error = new Error(
-            `Recording too short. Minimum ${MIN_RECORDING_TIME} second(s) required.`
+            `Recording too short. Minimum ${MIN_RECORDING_TIME} second(s) required.`,
           ) as TranscriptionError;
           error.type = "unknown";
           setState(RECORDING_STATE.ERROR);
@@ -214,17 +222,17 @@ const AudioButton: React.FC<AudioButtonProps> = ({ onTranscript, onError }) => {
       if (err instanceof DOMException) {
         if (err.name === "NotAllowedError") {
           error = new Error(
-            "Microphone permission denied. Please allow microphone access and try again."
+            "Microphone permission denied. Please allow microphone access and try again.",
           ) as TranscriptionError;
           error.type = "permission";
         } else if (err.name === "NotFoundError") {
           error = new Error(
-            "No microphone found. Please connect a microphone and try again."
+            "No microphone found. Please connect a microphone and try again.",
           ) as TranscriptionError;
           error.type = "unknown";
         } else if (err.name === "NotReadableError") {
           error = new Error(
-            "Microphone is being used by another application."
+            "Microphone is being used by another application.",
           ) as TranscriptionError;
           error.type = "unknown";
         } else {

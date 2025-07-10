@@ -16,7 +16,9 @@ const IntakeCard: React.FC<IntakeCardProps> = ({
 }) => {
   function formatNumber(v: number): string {
     return v
-      .toLocaleString("fi-FI", { maximumFractionDigits: maximumFractionDigits ?? 1 })
+      .toLocaleString("fi-FI", {
+        maximumFractionDigits: maximumFractionDigits ?? 1,
+      })
       .replace(/\s/, "")
       .trim();
   }
