@@ -274,16 +274,15 @@ const AudioButton: React.FC<AudioButtonProps> = ({ onTranscript, onError }) => {
       onClick={handleClick}
     >
       {isRecording ? (
-        <div className="audio-button-timer">
-          <span>Nauhoitetaan...</span>
-          <span>{formatTime(recordingTime)}</span>
+        <div className="timer">
+          <span>Nauhoitetaan... {formatTime(recordingTime)}</span>
         </div>
       ) : isProcessing ? (
-        <div className="audio-button-processing">
+        <div className="processing">
           <span>Käsitellään...</span>
         </div>
       ) : hasError ? (
-        <div className="audio-button-error">
+        <div className="error">
           <span>Virhe</span>
         </div>
       ) : (

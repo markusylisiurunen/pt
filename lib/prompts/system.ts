@@ -8,6 +8,7 @@ Current date: {{current_date}}
 Current time: {{current_time}}
 Current time zone: {{current_time_zone}}
 Current time zone offset in minutes: {{current_time_zone_offset}}
+Current day of the week: {{current_weekday}}
 </env>
 
 ## Tool usage guidance

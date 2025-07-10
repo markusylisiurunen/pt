@@ -7,6 +7,7 @@ import {
   getDateAtTimeZone,
   getTimeAtTimeZone,
   getTimeZoneOffsetInMinutes,
+  getWeekdayAtTimeZone,
 } from "../util/datetime.ts";
 import {
   appendFoodLogEntryTool,
@@ -134,6 +135,7 @@ class Agent {
       .replace("{{current_time}}", getTimeAtTimeZone(now, "Europe/Helsinki"))
       .replace("{{current_time_zone}}", "Europe/Helsinki")
       .replace("{{current_time_zone_offset}}", "" + getTimeZoneOffsetInMinutes("Europe/Helsinki"))
+      .replace("{{current_weekday}}", getWeekdayAtTimeZone(now, "Europe/Helsinki"))
       .replace("{{user_info}}", this.getUserInfo())
       .replace("{{user_memories}}", this.getUserMemories());
   }

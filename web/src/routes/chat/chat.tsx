@@ -1,4 +1,4 @@
-import { ArrowUpIcon, SquareIcon } from "lucide-react";
+import { ArrowUpIcon, ChevronLeftIcon, SquareIcon } from "lucide-react";
 import React, { useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import "./chat.css";
@@ -6,6 +6,19 @@ import { AssistantMessage } from "./components/assistant-message";
 import { AudioButton } from "./components/audio-button";
 import { ToolUseMessage } from "./components/tool-use-message";
 import { UserMessage } from "./components/user-message";
+
+const GREETINGS = [
+  "Hei! Miten voin auttaa sinua?",
+  "Terve! Mitä kuuluu, kerro vaan!",
+  "Moi! Kerro mitä mietit, olen täällä sua varten.",
+  "Hei siellä! Missä voin auttaa? Kysy rohkeasti!",
+  "Tervehdys! Mitä tehdään tänään?",
+  "Moro! Onko jotain kiinnostavaa mielessä?",
+  "Hei! Mitä pohdit? Olen kuulolla!",
+  "Terve! Kerro vaan mitä on mielessä.",
+  "Moi! Miten menee? Toivottavasti hyvin!",
+  "Hei! Mitä asiaa? Olen tässä apuna.",
+];
 
 type Message =
   | { role: "user"; content: string }
@@ -15,7 +28,9 @@ type Message =
 const ChatRoute: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<Message[]>([
+    { role: "assistant", content: GREETINGS[Math.floor(Math.random() * GREETINGS.length)] },
+  ]);
   const [input, setInput] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
 
@@ -110,12 +125,20 @@ const ChatRoute: React.FC = () => {
 
   return (
     <div className="chat-root">
-      <button onClick={() => navigate(-1)}>Takaisin</button>
       <div ref={historyRef} className="history">
+        <div className="header">
+          <button id="back" onClick={() => navigate(-1)}>
+            <ChevronLeftIcon size={19} strokeWidth={2.25} />
+            <span>Takaisin</span>
+          </button>
+        </div>
         {messages.map((message, index) => {
           const spacer = index > 0 ? <div style={{ height: 16 }} /> : null;
           switch (message.role) {
             case "user":
+              if (message.content.trim() === "") {
+                return null;
+              }
               return (
                 <React.Fragment key={message.role + "-" + index}>
                   {spacer}
@@ -123,6 +146,9 @@ const ChatRoute: React.FC = () => {
                 </React.Fragment>
               );
             case "assistant":
+              if (message.content.trim() === "") {
+                return null;
+              }
               return (
                 <React.Fragment key={message.role + "-" + index}>
                   {spacer}
@@ -141,36 +167,34 @@ const ChatRoute: React.FC = () => {
           }
         })}
       </div>
-      <div className="footer">
-        <div className="input-container">
-          <textarea
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.shiftKey) {
-                e.preventDefault();
-                sendMessage();
-              }
+      <div className="inputbox">
+        <textarea
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && !e.shiftKey) {
+              e.preventDefault();
+              sendMessage();
+            }
+          }}
+          placeholder="Kirjoita mitä vain"
+        />
+        <div className="actions">
+          <AudioButton
+            onTranscript={(transcript) =>
+              setInput((input) => (input.trim() + "\n\n" + transcript).trim())
+            }
+            onError={(error) => {
+              alert(`${error.message} (${error.type})`);
             }}
-            placeholder="Kirjoita mitä vain"
           />
-          <div className="actions">
-            <AudioButton
-              onTranscript={(transcript) =>
-                setInput((input) => (input.trim() + "\n\n" + transcript).trim())
-              }
-              onError={(error) => {
-                alert(`${error.message} (${error.type})`);
-              }}
-            />
-            <button id="send" onClick={sendMessage} disabled={isStreaming}>
-              {isStreaming ? (
-                <SquareIcon size={19} strokeWidth={2} />
-              ) : (
-                <ArrowUpIcon size={19} strokeWidth={2} />
-              )}
-            </button>
-          </div>
+          <button id="send" onClick={sendMessage} disabled={isStreaming}>
+            {isStreaming ? (
+              <SquareIcon size={19} strokeWidth={2.25} />
+            ) : (
+              <ArrowUpIcon size={19} strokeWidth={2.25} />
+            )}
+          </button>
         </div>
       </div>
     </div>

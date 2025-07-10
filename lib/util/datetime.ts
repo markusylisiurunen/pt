@@ -43,4 +43,13 @@ function getTimeZoneOffsetInMinutes(timeZone: string) {
   return (timeZoneDate.getTime() - utcDate.getTime()) / 60000;
 }
 
-export { getDateAtTimeZone, getTimeAtTimeZone, getTimeZoneOffsetInMinutes };
+function getWeekdayAtTimeZone(date: string | Date, timeZone: string): string {
+  const utcDate = new Date(date);
+  type Opts = Intl.DateTimeFormatOptions;
+  const options: Opts = { timeZone, weekday: "long" };
+  const parts = new Intl.DateTimeFormat("en-US", options).formatToParts(utcDate);
+  const getPart = (part: string) => parts.find((p) => p.type === part)?.value || "";
+  return getPart("weekday");
+}
+
+export { getDateAtTimeZone, getTimeAtTimeZone, getTimeZoneOffsetInMinutes, getWeekdayAtTimeZone };

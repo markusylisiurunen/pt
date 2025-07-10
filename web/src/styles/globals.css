@@ -20,12 +20,14 @@
 }
 
 :root {
-  background-color: var(--color-bg);
+  background: var(--color-bg);
   color-scheme: dark;
   color: var(--color-text);
   font-family: "Geist", system-ui, sans-serif;
   font-optical-sizing: auto;
+  font-size: 17px;
   font-synthesis: none;
+  font-weight: 425;
   letter-spacing: -0.02em;
   line-height: 1.5;
   overflow-wrap: break-word;
@@ -40,4 +42,14 @@
 body {
   margin: 0px;
   padding: 0px;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-weight: 700;
+  letter-spacing: -0.02em;
 }
