@@ -29,6 +29,7 @@
   padding-inline: 4px 8px;
 }
 .chat-root .header #back svg {
+  display: block;
   opacity: 0.5;
 }
 
@@ -97,6 +98,7 @@
 }
 .chat-root .inputbox #send .lucide-loader-circle {
   animation: send-loader-circle-spin 666ms linear infinite;
+  display: block;
 }
 /* prettier-ignore */
 @keyframes send-loader-circle-spin {
@@ -160,6 +162,7 @@
   padding-inline: 8px;
 }
 .chat-root .tool-use-message svg {
+  display: block;
   opacity: 0.5;
 }
 

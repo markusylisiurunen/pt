@@ -294,7 +294,7 @@ const AudioButton: React.FC<AudioButtonProps> = ({ onTranscript, onError }) => {
           <span>Virhe</span>
         </div>
       ) : (
-        <AudioLinesIcon size={19} strokeWidth={2} />
+        <AudioLinesIcon size={20} strokeWidth={2} />
       )}
     </button>
   );

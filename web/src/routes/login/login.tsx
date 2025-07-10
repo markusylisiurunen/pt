@@ -26,7 +26,7 @@ const LoginRoute: React.FC = () => {
         />
         <button onClick={handleLogin}>
           <span>Kirjaudu</span>
-          <ArrowRightIcon size={19} strokeWidth={2.25} />
+          <ArrowRightIcon size={20} strokeWidth={2.25} />
         </button>
       </div>
     </div>

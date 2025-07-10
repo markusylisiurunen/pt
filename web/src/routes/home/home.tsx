@@ -65,7 +65,7 @@ const HomeRoute: React.FC = () => {
         <button onClick={handleLogout}>Poistu</button>
         <button onClick={() => navigate(`/chats/${crypto.randomUUID()}`)}>
           <span>Keskustele</span>
-          <ArrowRightIcon size={19} strokeWidth={2.25} />
+          <ArrowRightIcon size={20} strokeWidth={2.25} />
         </button>
       </div>
       <div className="intake">

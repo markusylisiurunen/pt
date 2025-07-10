@@ -135,7 +135,7 @@ const ChatRoute: React.FC = () => {
       <div ref={historyRef} className="history">
         <div className="header">
           <button id="back" onClick={() => navigate(-1)}>
-            <ChevronLeftIcon size={19} strokeWidth={2.25} />
+            <ChevronLeftIcon size={20} strokeWidth={2.25} />
             <span>Takaisin</span>
           </button>
         </div>
@@ -197,9 +197,9 @@ const ChatRoute: React.FC = () => {
           />
           <button id="send" onClick={sendMessage} disabled={isStreaming}>
             {isStreaming ? (
-              <LoaderCircleIcon size={19} strokeWidth={2.25} />
+              <LoaderCircleIcon size={20} strokeWidth={2.25} />
             ) : (
-              <ArrowUpIcon size={19} strokeWidth={2.25} />
+              <ArrowUpIcon size={20} strokeWidth={2.25} />
             )}
           </button>
         </div>
