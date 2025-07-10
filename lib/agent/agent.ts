@@ -40,6 +40,8 @@ type ToolUseEvent = {
 type AgentEvent = ContentDeltaEvent | ToolUseEvent;
 
 class Agent {
+  private id: string;
+
   private anthropicApiKey: string;
   private geminiApiKey: string;
 
@@ -47,12 +49,18 @@ class Agent {
   private db: DatabaseSync;
 
   private largeModel: Anthropic.Model = "claude-sonnet-4-0";
-  // private smallModel: Anthropic.Model = "claude-claude-3-5-haiku-latest";
+  private smallModel: Anthropic.Model = "claude-claude-3-5-haiku-latest";
 
   constructor(anthropicApiKey: string, geminiApiKey: string, db: DatabaseSync) {
+    this.id = crypto.randomUUID();
     this.anthropicApiKey = anthropicApiKey;
     this.geminiApiKey = geminiApiKey;
-    this.client = new Anthropic({ apiKey: anthropicApiKey });
+    this.client = new Anthropic({
+      apiKey: anthropicApiKey,
+      defaultHeaders: {
+        "anthropic-beta": "interleaved-thinking-2025-05-14",
+      },
+    });
     this.db = db;
   }
 
@@ -67,6 +75,7 @@ class Agent {
       const stream = this.client.messages.stream({
         max_tokens: 8192,
         messages: messages,
+        metadata: { user_id: this.id },
         model: this.largeModel,
         system: this.getSystemPrompt(),
         thinking: { type: "enabled", budget_tokens: 4096 },
