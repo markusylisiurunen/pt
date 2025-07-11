@@ -208,3 +208,30 @@
   opacity: 0.75;
   text-align: right;
 }
+
+/* training program link */
+.home-root a[href="/training-program"] {
+  align-items: center;
+  appearance: none;
+  background: transparent;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border-muted);
+  color: var(--color-text);
+  cursor: pointer;
+  display: flex;
+  font-family: "GeistMono", monospace;
+  font-size: calc(15 / 16 * 1rem);
+  font-weight: 425;
+  height: 52px;
+  justify-content: space-between;
+  letter-spacing: -0.04em;
+  margin-block: 12px 0px;
+  outline: none;
+  padding-block: 0px;
+  padding-inline: 12px;
+  text-decoration: none;
+  width: 100%;
+}
+.home-root a[href="/training-program"] svg {
+  opacity: 0.75;
+}

@@ -10,6 +10,6 @@
   --color-text-placeholder: lch(52% 4 60);
   --color-text: lch(94% 4 60);
 
-  --radius-md: 4px;
-  --radius-lg: 6px;
+  --radius-md: 5px;
+  --radius-lg: 8px;
 }

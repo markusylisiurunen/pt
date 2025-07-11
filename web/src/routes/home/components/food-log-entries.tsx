@@ -14,8 +14,8 @@ const FoodLogEntries: React.FC<FoodLogEntriesProps> = ({ entries }) => {
       .toLocaleTimeString("fi-FI", { hour: "2-digit", minute: "2-digit", hour12: false })
       .replaceAll(".", ":");
   }
-  function formatNumber(value: number, maximumFractionDigits: number): string {
-    return value.toLocaleString("fi-FI", { maximumFractionDigits });
+  function formatNumber(value: number): string {
+    return value.toLocaleString("fi-FI", { maximumFractionDigits: 0 });
   }
   return (
     <div className="food-log-entries">
@@ -31,7 +31,7 @@ const FoodLogEntries: React.FC<FoodLogEntriesProps> = ({ entries }) => {
               <span>{entry.label}</span>
             </span>
             <span>
-              {formatNumber(entry.kcal, 0)}/{formatNumber(entry.protein, 1)}
+              {formatNumber(entry.kcal)}/{formatNumber(entry.protein)}
             </span>
           </React.Fragment>
         ))}

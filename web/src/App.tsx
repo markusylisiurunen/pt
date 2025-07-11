@@ -3,6 +3,7 @@ import { Navigate, Outlet, Route, Routes } from "react-router";
 import { ChatRoute } from "./routes/chat/chat";
 import { HomeRoute } from "./routes/home/home";
 import { LoginRoute } from "./routes/login/login";
+import { TrainingProgramRoute } from "./routes/training-program/training-program";
 
 const AuthGuard: React.FC = () => {
   const authenticated = useMemo(() => window.localStorage.getItem("token") !== null, []);
@@ -19,6 +20,7 @@ const App: React.FC = () => {
       <Route element={<AuthGuard />}>
         <Route index element={<HomeRoute />} />
         <Route path="/chats/:id" element={<ChatRoute />} />
+        <Route path="/training-program" element={<TrainingProgramRoute />} />
       </Route>
     </Routes>
   );

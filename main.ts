@@ -10,6 +10,7 @@ import { serveDir } from "@std/http";
 import { Agent } from "./lib/agent/agent.ts";
 import { chatRoute } from "./lib/routes/chat.ts";
 import { configRoute } from "./lib/routes/config.ts";
+import { docsRoute } from "./lib/routes/docs.ts";
 import { exportRoute } from "./lib/routes/export.ts";
 import { importRoute } from "./lib/routes/import.ts";
 import { transcribeRoute } from "./lib/routes/transcribe.ts";
@@ -22,6 +23,7 @@ const agent = new Agent(ANTHROPIC_API_KEY, GEMINI_API_KEY, db);
 
 const chatPattern = new URLPattern({ pathname: "/api/chats/:id" });
 const configPattern = new URLPattern({ pathname: "/api/config" });
+const docsPattern = new URLPattern({ pathname: "/api/docs/:slug" });
 const exportPattern = new URLPattern({ pathname: "/api/export" });
 const importPattern = new URLPattern({ pathname: "/api/import" });
 const transcribePattern = new URLPattern({ pathname: "/api/transcribe" });
@@ -48,6 +50,9 @@ export default {
 
     const configMatch = configPattern.exec(url);
     if (configMatch) return configRoute(db)(req);
+
+    const docsMatch = docsPattern.exec(url);
+    if (docsMatch) return docsRoute(db, docsMatch.pathname.groups["slug"] ?? "")(req);
 
     const exportMatch = exportPattern.exec(url);
     if (exportMatch) return exportRoute(db, password)(req);

@@ -1,6 +1,6 @@
 import { ArrowRightIcon } from "lucide-react";
 import React, { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { FoodLogEntries } from "./components/food-log-entries";
 import { IntakeCard } from "./components/intake-card";
 import { WeightGraph } from "./components/weight-graph";
@@ -107,6 +107,10 @@ const HomeRoute: React.FC = () => {
         targetWeight={targetWeightValue}
       />
       <FoodLogEntries entries={foodLogToday} />
+      <Link to="/training-program">
+        <span>Treeniohjelma</span>
+        <ArrowRightIcon size={20} strokeWidth={2} />
+      </Link>
     </div>
   );
 };

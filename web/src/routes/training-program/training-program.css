@@ -1,0 +1,115 @@
+.training-program-root {
+  display: flex;
+  flex-direction: column;
+  height: calc(100lvh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+  margin-inline: auto;
+  max-width: 640px;
+  width: 100%;
+}
+
+/* back button */
+.training-program-root .header {
+  margin-block: 12px 12px;
+  margin-inline: 12px;
+}
+.training-program-root .header #back {
+  align-items: center;
+  appearance: none;
+  background: transparent;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border-muted);
+  color: var(--color-text);
+  cursor: pointer;
+  display: flex;
+  font-weight: 500;
+  gap: 3px;
+  height: 40px;
+  outline: none;
+  padding-block: 0px;
+  padding-inline: 4px 8px;
+}
+.training-program-root .header #back svg {
+  display: block;
+  opacity: 0.5;
+}
+
+/* markdown styles */
+.training-program-root .md {
+  margin-inline: 12px;
+}
+.training-program-root .md > :first-child {
+  margin-block-start: 0 !important;
+}
+.training-program-root .md > :last-child {
+  margin-block-end: 0 !important;
+}
+
+.training-program-root .md h1,
+.training-program-root .md h2,
+.training-program-root .md h3 {
+  margin-block: 0.5em;
+}
+.training-program-root .md h1 {
+  font-size: 1.4em;
+}
+.training-program-root .md h2 {
+  font-size: 1.2em;
+}
+.training-program-root .md h3 {
+  font-size: 1em;
+}
+
+.training-program-root .md p {
+  margin-block: 0.5em;
+}
+
+.training-program-root .md strong {
+  font-weight: 600;
+}
+
+.training-program-root .md ul,
+.training-program-root .md ol {
+  margin-block: 0.5em;
+  padding-inline-start: 1.5em;
+}
+.training-program-root .md li {
+  margin-block: 0.2em;
+}
+
+.training-program-root .md hr {
+  background: var(--color-border-muted);
+  border: none;
+  height: 1px;
+  margin-block: 1em;
+}
+
+.training-program-root .md blockquote {
+  border-left: 4px solid var(--color-border-muted);
+  margin-block: 1em;
+  padding-inline-start: 1em;
+}
+
+.training-program-root .md > pre {
+  background: color-mix(in srgb, var(--color-text) 2%, transparent);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border-accent);
+  font-family: "GeistMono", monospace;
+  font-size: calc(15 / 16 * 1rem);
+  letter-spacing: -0.04em;
+  line-height: 1.5;
+  margin-block: 1em;
+  overflow-x: auto;
+  padding: 12px;
+  white-space: pre-wrap;
+}
+
+.training-program-root .md p code {
+  background: color-mix(in srgb, var(--color-text) 4%, transparent);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border-muted);
+  display: inline-block;
+  font-family: "GeistMono", monospace;
+  font-size: calc(14 / 16 * 1rem);
+  letter-spacing: -0.04em;
+  padding: 1px 3px;
+}
