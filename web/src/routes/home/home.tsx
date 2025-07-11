@@ -3,6 +3,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { FoodLogEntries } from "./components/food-log-entries";
 import { IntakeCard } from "./components/intake-card";
+import { Memories } from "./components/memories";
 import { WeightGraph } from "./components/weight-graph";
 import "./home.css";
 
@@ -10,6 +11,7 @@ const HomeRoute: React.FC = () => {
   const navigate = useNavigate();
   const now = useMemo(() => new Date().toISOString(), []);
 
+  const [memories, setMemories] = useState<string[]>([]);
   const [dailyIntake, setDailyIntake] = useState({ kcal: 0, protein: 0 });
   const [dailyTarget, setDailyTarget] = useState({ kcal: 0, protein: 0 });
   const [weightHistory, setWeightHistory] = useState<{ date: string; weight: number }[]>([]);
@@ -39,6 +41,7 @@ const HomeRoute: React.FC = () => {
       if (resp.ok) {
         const data = (await resp.json()) as {
           config: {
+            memoryEntries: string[];
             targetDailyIntakeCalories: number;
             targetDailyIntakeProtein: number;
             targetWeightDate: string;
@@ -59,6 +62,7 @@ const HomeRoute: React.FC = () => {
             protein: number;
           }[];
         };
+        setMemories(data.config.memoryEntries);
         setDailyIntake({
           kcal: data.foodIntakeToday.kcal,
           protein: data.foodIntakeToday.protein,
@@ -111,6 +115,7 @@ const HomeRoute: React.FC = () => {
         <span>Treeniohjelma</span>
         <ArrowRightIcon size={20} strokeWidth={2} />
       </Link>
+      <Memories memories={memories} />
     </div>
   );
 };
