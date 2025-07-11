@@ -77,7 +77,13 @@ class Agent {
         messages: messages,
         metadata: { user_id: this.id },
         model: this.largeModel,
-        system: this.getSystemPrompt(),
+        system: [
+          {
+            type: "text",
+            text: this.getSystemPrompt(),
+            cache_control: { type: "ephemeral" },
+          },
+        ],
         thinking: { type: "enabled", budget_tokens: 4096 },
         tools: this.getTools(),
       });
