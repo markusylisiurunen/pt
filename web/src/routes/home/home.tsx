@@ -1,6 +1,7 @@
 import { ArrowRightIcon } from "lucide-react";
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
+import { FoodLogEntries } from "./components/food-log-entries";
 import { IntakeCard } from "./components/intake-card";
 import { WeightGraph } from "./components/weight-graph";
 import "./home.css";
@@ -14,6 +15,14 @@ const HomeRoute: React.FC = () => {
   const [weightHistory, setWeightHistory] = useState<{ date: string; weight: number }[]>([]);
   const [targetWeightDate, setTargetWeightDate] = useState<string>("");
   const [targetWeightValue, setTargetWeightValue] = useState<number>(0);
+  const [foodLogToday, setFoodLogToday] = useState<
+    {
+      ts: string;
+      label: string;
+      kcal: number;
+      protein: number;
+    }[]
+  >([]);
 
   function handleLogout() {
     window.localStorage.removeItem("token");
@@ -43,6 +52,12 @@ const HomeRoute: React.FC = () => {
             date: string;
             weight: number;
           }[];
+          foodLogToday: {
+            ts: string;
+            label: string;
+            kcal: number;
+            protein: number;
+          }[];
         };
         setDailyIntake({
           kcal: data.foodIntakeToday.kcal,
@@ -55,6 +70,7 @@ const HomeRoute: React.FC = () => {
         setWeightHistory(data.weightHistory);
         setTargetWeightDate(data.config.targetWeightDate);
         setTargetWeightValue(data.config.targetWeightValue);
+        setFoodLogToday(data.foodLogToday);
       }
     });
   }, []);
@@ -90,6 +106,7 @@ const HomeRoute: React.FC = () => {
         targetDate={targetWeightDate}
         targetWeight={targetWeightValue}
       />
+      <FoodLogEntries entries={foodLogToday} />
     </div>
   );
 };

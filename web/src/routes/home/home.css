@@ -155,3 +155,56 @@
   letter-spacing: -0.04em;
   margin-block-start: 8px;
 }
+
+/* food log entries */
+.home-root .food-log-entries {
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border-muted);
+  margin-block-start: 12px;
+  padding-block: 12px;
+  padding-inline: 12px;
+}
+.home-root .food-log-entries .header {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  margin-block: 0px 12px;
+}
+.home-root .food-log-entries .header h3,
+.home-root .food-log-entries .header span {
+  font-family: "GeistMono", monospace;
+  font-size: calc(15 / 16 * 1rem);
+  font-weight: 425;
+  letter-spacing: -0.04em;
+  margin: 0px;
+}
+.home-root .food-log-entries .header span {
+  font-size: calc(14 / 16 * 1rem);
+  opacity: 0.75;
+}
+.home-root .food-log-entries .entries {
+  column-gap: 12px;
+  display: grid;
+  grid-template-columns: 1fr max-content;
+  row-gap: 6px;
+}
+.home-root .food-log-entries .entries > :nth-child(2n + 1) {
+  font-family: "GeistMono", monospace;
+  font-size: calc(14 / 16 * 1rem);
+  font-weight: 425;
+  letter-spacing: -0.04em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.home-root .food-log-entries .entries > :nth-child(2n + 1) > span:first-child {
+  opacity: 0.75;
+}
+.home-root .food-log-entries .entries > :nth-child(2n) {
+  font-family: "GeistMono", monospace;
+  font-size: calc(14 / 16 * 1rem);
+  font-weight: 425;
+  letter-spacing: -0.04em;
+  opacity: 0.75;
+  text-align: right;
+}

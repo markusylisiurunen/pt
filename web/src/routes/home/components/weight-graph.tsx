@@ -87,7 +87,7 @@ const WeightGraph: React.FC<WeightGraphProps> = ({ now, history, targetDate, tar
             "fi-FI",
             { maximumFractionDigits: 2 },
           )}{" "}
-          kg/vko <GoalIcon size={16} strokeWidth={2.25} />
+          kg/vko <GoalIcon size={16} strokeWidth={2} />
         </span>
       </div>
       <div className="chart-container">

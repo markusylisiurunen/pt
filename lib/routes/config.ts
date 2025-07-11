@@ -1,7 +1,7 @@
 import { DatabaseSync } from "node:sqlite";
 import { readDocumentContentBySlug } from "../db/docs.ts";
 import { Config } from "../entities/config.ts";
-import { Log } from "../entities/log.ts";
+import { FoodLogEntry, Log } from "../entities/log.ts";
 import { getDateAtTimeZone } from "../util/datetime.ts";
 
 interface Route {
@@ -45,11 +45,20 @@ function configRoute(db: DatabaseSync): Route {
       .filter((i) => i.kind === "weight")
       .filter((i) => new Date(i.ts) >= weightHistoryMinDate)
       .map((i) => ({ date: i.ts, weight: i.weight }));
+    // filter the food log entries to today
+    const foodLogEntriesToday = log.data.entries
+      .filter((i): i is FoodLogEntry => {
+        if (i.kind !== "food") return false;
+        const dateStr = getDateAtTimeZone(i.ts, "Europe/Helsinki");
+        return dateStr === nowDateStr;
+      })
+      .map((i) => ({ ts: i.ts, label: i.description, kcal: i.kcal, protein: i.protein }));
     // construct the result object
     const result = JSON.stringify({
       config: config.data,
       foodIntakeToday: { kcal: kcalToday, protein: proteinToday },
       weightHistory: weightHistory,
+      foodLogToday: foodLogEntriesToday,
     });
     return new Response(result, { headers: { "content-type": "application/json" } });
   };
