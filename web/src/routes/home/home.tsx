@@ -62,7 +62,7 @@ const HomeRoute: React.FC = () => {
             protein: number;
           }[];
         };
-        setMemories(data.config.memoryEntries);
+        setMemories(data.config.memoryEntries.reverse());
         setDailyIntake({
           kcal: data.foodIntakeToday.kcal,
           protein: data.foodIntakeToday.protein,
