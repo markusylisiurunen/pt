@@ -71,11 +71,28 @@
   align-items: center;
   display: flex;
   gap: 8px;
-  justify-content: flex-end;
+  justify-content: space-between;
   padding-block: 0px 12px;
   padding-inline: 12px;
 }
-.chat-root .inputbox .actions button {
+.chat-root .inputbox .actions > div {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+}
+.chat-root .inputbox .actions > :first-child button {
+  align-items: center;
+  appearance: none;
+  border-radius: var(--radius-md);
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  height: 34px;
+  justify-content: center;
+  outline: none;
+  padding: 0px 8px;
+}
+.chat-root .inputbox .actions > :last-child button {
   align-items: center;
   appearance: none;
   border-radius: var(--radius-md);
@@ -87,6 +104,19 @@
   outline: none;
   padding: 0px;
   width: 34px;
+}
+
+.chat-root .inputbox #clear-attached {
+  background: var(--color-bg-btn-secondary);
+  color: var(--color-text-on-bg-btn-secondary);
+  font-family: "GeistMono", monospace;
+  font-size: calc(14 / 16 * 1rem);
+  gap: 6px;
+  letter-spacing: -0.04em;
+}
+.chat-root .inputbox #clear-attached svg {
+  display: block;
+  opacity: 0.5;
 }
 
 .chat-root .inputbox #send {
@@ -123,10 +153,16 @@
   letter-spacing: -0.04em;
 }
 
+.chat-root .inputbox .actions #attach {
+  background: var(--color-bg-btn-secondary);
+  color: var(--color-text-on-bg-btn-secondary);
+}
+
 /* chat messages */
 .chat-root .user-message {
+  align-items: flex-end;
   display: flex;
-  justify-content: flex-end;
+  flex-direction: column;
   margin-inline: 12px;
 }
 .chat-root .user-message p {
@@ -137,6 +173,22 @@
   max-width: 80%;
   padding-block: 8px;
   padding-inline: 8px;
+}
+.chat-root .user-message > div {
+  display: grid;
+  grid-template-columns: 100%;
+  margin-block-start: 8px;
+  row-gap: 8px;
+  width: min(50lvw, 256px);
+}
+.chat-root .user-message > div img {
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  display: block;
+  height: auto;
+  margin: 0px;
+  overflow: hidden;
+  width: 100%;
 }
 
 /* assistant messages */

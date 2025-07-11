@@ -12,6 +12,14 @@ function chatRoute(agent: Agent, id: string): Route {
     }
     const bodySchema = z.object({
       content: z.string(),
+      images: z
+        .array(
+          z.object({
+            mimeType: z.enum(["image/jpeg", "image/png"]),
+            base64Data: z.string().min(1),
+          }),
+        )
+        .optional(),
     });
     const parsedBody = bodySchema.safeParse(await req.json());
     if (!parsedBody.success) {
@@ -20,8 +28,9 @@ function chatRoute(agent: Agent, id: string): Route {
     const stream = new ReadableStream({
       async start(controller) {
         const content = parsedBody.data.content;
+        const images = parsedBody.data.images;
         try {
-          for await (const event of agent.send(id, content)) {
+          for await (const event of agent.send(id, content, images)) {
             const data = `data: ${JSON.stringify(event)}\n\n`;
             controller.enqueue(new TextEncoder().encode(data));
           }

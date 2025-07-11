@@ -1,4 +1,4 @@
-import { ArrowUpIcon, ChevronLeftIcon, LoaderCircleIcon } from "lucide-react";
+import { ArrowUpIcon, ChevronLeftIcon, ImageIcon, LoaderCircleIcon, XIcon } from "lucide-react";
 import React, { useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { getSafeAreaInsets } from "../../util/safe-area";
@@ -21,8 +21,13 @@ const GREETINGS = [
   "Hei! Mitä asiaa? Olen tässä apuna.",
 ];
 
+type ImageAttachment = {
+  mimeType: string;
+  base64Data: string;
+};
+
 type Message =
-  | { role: "user"; content: string }
+  | { role: "user"; content: string; images?: ImageAttachment[] }
   | { role: "assistant"; content: string }
   | { role: "tool-use"; name: string };
 
@@ -36,17 +41,49 @@ const ChatRoute: React.FC = () => {
     },
   ]);
   const [input, setInput] = useState("");
+  const [images, setImages] = useState<ImageAttachment[]>([]);
   const [isStreaming, setIsStreaming] = useState(false);
 
   const historyRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (files) {
+      const newImages: ImageAttachment[] = [];
+      for (let i = 0; i < files.length; i++) {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          newImages.push({
+            mimeType: files[i].type,
+            base64Data: reader.result as string,
+          });
+          if (newImages.length === files.length) {
+            setImages((prev) => [...prev, ...newImages]);
+          }
+        };
+        reader.readAsDataURL(files[i]);
+      }
+    }
+  };
 
   async function sendMessage() {
-    if (!input.trim() || isStreaming) return;
+    if ((!input.trim() && images.length === 0) || isStreaming) return;
 
-    const userMessage = { role: "user" as const, content: input };
+    const userMessage: Message = {
+      role: "user" as const,
+      content: input,
+      images: images.length > 0 ? images : undefined,
+    };
+
     setMessages((prev) => [...prev, userMessage]);
     setInput("");
+    setImages([]);
     setIsStreaming(true);
+
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
 
     setTimeout(() => {
       if (!historyRef.current) return;
@@ -64,7 +101,13 @@ const ChatRoute: React.FC = () => {
           authorization: `Bearer ${token}`,
           "content-type": "application/json",
         },
-        body: JSON.stringify({ content: input }),
+        body: JSON.stringify({
+          content: input,
+          images: images.map((image) => ({
+            mimeType: image.mimeType,
+            base64Data: image.base64Data.split("base64,")[1],
+          })),
+        }),
       });
 
       if (!response.ok) {
@@ -149,7 +192,7 @@ const ChatRoute: React.FC = () => {
               return (
                 <React.Fragment key={message.role + "-" + index}>
                   {spacer}
-                  <UserMessage content={message.content} />
+                  <UserMessage content={message.content} images={message.images} />
                 </React.Fragment>
               );
             case "assistant":
@@ -187,21 +230,45 @@ const ChatRoute: React.FC = () => {
           placeholder="Kirjoita mitä vain"
         />
         <div className="actions">
-          <AudioButton
-            onTranscript={(transcript) =>
-              setInput((input) => (input.trim() + "\n\n" + transcript).trim())
-            }
-            onError={(error) => {
-              alert(`${error.message} (${error.type})`);
-            }}
-          />
-          <button id="send" onClick={sendMessage} disabled={isStreaming}>
-            {isStreaming ? (
-              <LoaderCircleIcon size={20} strokeWidth={2.25} />
-            ) : (
-              <ArrowUpIcon size={20} strokeWidth={2.25} />
-            )}
-          </button>
+          <div>
+            {images.length > 0 ? (
+              <button id="clear-attached" onClick={() => setImages([])}>
+                <span>
+                  {images.length} kuva{images.length > 1 ? "a" : ""}
+                </span>
+                <XIcon size={16} strokeWidth={2} />
+              </button>
+            ) : null}
+          </div>
+          <div>
+            <input
+              accept="image/jpeg,image/png"
+              capture="environment"
+              multiple={true}
+              ref={fileInputRef}
+              style={{ display: "none" }}
+              type="file"
+              onChange={handleImageChange}
+            />
+            <button id="attach" onClick={() => fileInputRef.current?.click()}>
+              <ImageIcon size={20} strokeWidth={2} />
+            </button>
+            <AudioButton
+              onTranscript={(transcript) =>
+                setInput((input) => (input.trim() + "\n\n" + transcript).trim())
+              }
+              onError={(error) => {
+                alert(`${error.message} (${error.type})`);
+              }}
+            />
+            <button id="send" onClick={sendMessage} disabled={isStreaming}>
+              {isStreaming ? (
+                <LoaderCircleIcon size={20} strokeWidth={2.25} />
+              ) : (
+                <ArrowUpIcon size={20} strokeWidth={2.25} />
+              )}
+            </button>
+          </div>
         </div>
       </div>
     </div>

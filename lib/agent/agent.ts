@@ -64,9 +64,21 @@ class Agent {
     this.db = db;
   }
 
-  async *send(id: string, content: string): AsyncGenerator<AgentEvent> {
+  async *send(
+    id: string,
+    content: string,
+    images?: { mimeType: "image/jpeg" | "image/png"; base64Data: string }[],
+  ): AsyncGenerator<AgentEvent> {
     const messages: Anthropic.MessageParam[] = this.loadChatHistory(id);
     messages.push({ role: "user", content: [{ type: "text", text: content }] });
+    if (images && images.length > 0) {
+      for (const image of images) {
+        (messages.at(-1)!.content as Anthropic.ContentBlockParam[]).push({
+          type: "image",
+          source: { type: "base64", media_type: image.mimeType, data: image.base64Data },
+        });
+      }
+    }
 
     let turnsLeft = 16;
 
