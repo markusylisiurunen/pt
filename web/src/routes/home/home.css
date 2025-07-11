@@ -3,7 +3,7 @@
   flex-direction: column;
   margin-inline: auto;
   max-width: 640px;
-  padding-block: 12px;
+  padding-block: 12px 10lvh;
   padding-inline: 12px;
 }
 
