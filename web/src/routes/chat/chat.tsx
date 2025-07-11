@@ -243,7 +243,6 @@ const ChatRoute: React.FC = () => {
           <div>
             <input
               accept="image/jpeg,image/png"
-              capture="environment"
               multiple={true}
               ref={fileInputRef}
               style={{ display: "none" }}
