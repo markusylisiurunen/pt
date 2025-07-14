@@ -57,7 +57,7 @@ const IntakeHistory: React.FC<IntakeHistoryProps> = ({ target, history }) => {
       const diff = entry.kcal - target;
       return {
         date: entry.date,
-        kcal: Math.abs(diff) <= 50 ? 0 : diff,
+        kcal: Math.round(Math.abs(diff) <= 50 ? 0 : diff),
       };
     });
   }, [history, target]);
