@@ -65,7 +65,9 @@ const IntakeHistory: React.FC<IntakeHistoryProps> = ({ target, history }) => {
   return (
     <div className="intake-history">
       <div className="header">
-        <h3>Kalorit (2 vko)</h3>
+        <h3>
+          Kalorit <span>(2 vko)</span>
+        </h3>
       </div>
       <div className="chart-container">
         <ResponsiveContainer>
@@ -81,7 +83,7 @@ const IntakeHistory: React.FC<IntakeHistoryProps> = ({ target, history }) => {
                 fill: "var(--color-text)",
                 fillOpacity: 0.75,
                 fontFamily: "GeistMono, monospace",
-                fontSize: 13,
+                fontSize: 12,
                 letterSpacing: "-0.04em",
                 position: "top",
               }}
