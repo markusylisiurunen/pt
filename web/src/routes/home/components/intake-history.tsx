@@ -78,7 +78,6 @@ const IntakeHistory: React.FC<IntakeHistoryProps> = ({ target, history }) => {
               dataKey="kcal"
               shape={<CustomBar />}
               label={{
-                dy: 4,
                 fill: "var(--color-text)",
                 fillOpacity: 0.75,
                 fontFamily: "GeistMono, monospace",

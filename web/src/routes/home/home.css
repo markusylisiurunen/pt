@@ -127,7 +127,7 @@
   margin: 0px;
 }
 .home-root .intake-history .chart-container {
-  aspect-ratio: 3.5;
+  aspect-ratio: 3;
   width: 100%;
 }
 .home-root .intake-history .chart-container svg {

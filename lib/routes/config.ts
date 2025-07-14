@@ -45,7 +45,7 @@ function configRoute(db: DatabaseSync): Route {
         const dateStr = getDateAtTimeZone(i.ts, "Europe/Helsinki");
         const nowStr = getDateAtTimeZone(new Date().toISOString(), "Europe/Helsinki");
         const diff = new Date(nowStr).getTime() - new Date(dateStr).getTime();
-        return diff >= 0 && diff <= 14 * 24 * 3600 * 1000;
+        return diff > 0 && diff <= 14 * 24 * 3600 * 1000;
       })
       .reduce((acc, i) => {
         const dateStr = getDateAtTimeZone(i.ts, "Europe/Helsinki");
