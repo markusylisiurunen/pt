@@ -3,6 +3,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { FoodLogEntries } from "./components/food-log-entries";
 import { IntakeCard } from "./components/intake-card";
+import { IntakeHistory } from "./components/intake-history";
 import { Memories } from "./components/memories";
 import { WeightGraph } from "./components/weight-graph";
 import "./home.css";
@@ -14,6 +15,7 @@ const HomeRoute: React.FC = () => {
   const [memories, setMemories] = useState<string[]>([]);
   const [dailyIntake, setDailyIntake] = useState({ kcal: 0, protein: 0 });
   const [dailyTarget, setDailyTarget] = useState({ kcal: 0, protein: 0 });
+  const [intakeHistory, setIntakeHistory] = useState<{ date: string; kcal: number }[]>([]);
   const [weightHistory, setWeightHistory] = useState<{ date: string; weight: number }[]>([]);
   const [targetWeightDate, setTargetWeightDate] = useState<string>("");
   const [targetWeightValue, setTargetWeightValue] = useState<number>(0);
@@ -51,6 +53,10 @@ const HomeRoute: React.FC = () => {
             kcal: number;
             protein: number;
           };
+          foodIntakeHistory: {
+            date: string;
+            kcal: number;
+          }[];
           weightHistory: {
             date: string;
             weight: number;
@@ -71,6 +77,7 @@ const HomeRoute: React.FC = () => {
           kcal: data.config.targetDailyIntakeCalories,
           protein: data.config.targetDailyIntakeProtein,
         });
+        setIntakeHistory(data.foodIntakeHistory);
         setWeightHistory(data.weightHistory);
         setTargetWeightDate(data.config.targetWeightDate);
         setTargetWeightValue(data.config.targetWeightValue);
@@ -110,6 +117,7 @@ const HomeRoute: React.FC = () => {
         targetDate={targetWeightDate}
         targetWeight={targetWeightValue}
       />
+      <IntakeHistory target={dailyTarget.kcal} history={intakeHistory} />
       <FoodLogEntries entries={foodLogToday} />
       <Link to="/training-program">
         <span>Treeniohjelma</span>

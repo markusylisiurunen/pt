@@ -38,6 +38,16 @@ function configRoute(db: DatabaseSync): Route {
       if (dateStr !== nowDateStr) return sum;
       return sum + (i.protein ?? 0);
     }, 0);
+    // grab the food intake history for the last 14 days
+    const foodIntakeHistory = log.data.entries
+      .filter((i): i is FoodLogEntry => i.kind === "food")
+      .filter((i) => {
+        const dateStr = getDateAtTimeZone(i.ts, "Europe/Helsinki");
+        const date = new Date(dateStr);
+        const now = new Date();
+        return date >= new Date(now.getFullYear(), now.getMonth(), now.getDate() - 14);
+      })
+      .map((i) => ({ date: i.ts, kcal: i.kcal, protein: i.protein }));
     // filter the weight history to the last 6 months
     const weightHistoryMinDate = new Date();
     weightHistoryMinDate.setDate(weightHistoryMinDate.getDate() - 6 * 30);
@@ -57,6 +67,7 @@ function configRoute(db: DatabaseSync): Route {
     const result = JSON.stringify({
       config: config.data,
       foodIntakeToday: { kcal: kcalToday, protein: proteinToday },
+      foodIntakeHistory: foodIntakeHistory,
       weightHistory: weightHistory,
       foodLogToday: foodLogEntriesToday,
     });
