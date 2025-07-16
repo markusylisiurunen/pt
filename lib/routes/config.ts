@@ -62,9 +62,9 @@ function configRoute(db: DatabaseSync): Route {
       protein: intake.protein,
     }));
     foodIntakeHistoryArray.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-    // filter the weight history to the last 6 months
+    // filter the weight history to the last 3 months
     const weightHistoryMinDate = new Date();
-    weightHistoryMinDate.setDate(weightHistoryMinDate.getDate() - 6 * 30);
+    weightHistoryMinDate.setDate(weightHistoryMinDate.getDate() - 3 * 28);
     const weightHistory = log.data.entries
       .filter((i) => i.kind === "weight")
       .filter((i) => new Date(i.ts) >= weightHistoryMinDate)
