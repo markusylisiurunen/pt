@@ -70,7 +70,13 @@ class Agent {
     images?: { mimeType: "image/jpeg" | "image/png"; base64Data: string }[],
   ): AsyncGenerator<AgentEvent> {
     const messages: Anthropic.MessageParam[] = this.loadChatHistory(id);
-    messages.push({ role: "user", content: [{ type: "text", text: content }] });
+    messages.push({
+      role: "user",
+      content: [
+        { type: "text", text: this.getSystemReminder() + "\n\n" },
+        { type: "text", text: content },
+      ],
+    });
     if (images && images.length > 0) {
       for (const image of images) {
         (messages.at(-1)!.content as Anthropic.ContentBlockParam[]).push({
@@ -159,12 +165,18 @@ class Agent {
     const now = new Date().toISOString();
     return systemPrompt
       .replace("{{current_date}}", getDateAtTimeZone(now, "Europe/Helsinki"))
-      .replace("{{current_time}}", getTimeAtTimeZone(now, "Europe/Helsinki"))
       .replace("{{current_time_zone}}", "Europe/Helsinki")
       .replace("{{current_time_zone_offset}}", "" + getTimeZoneOffsetInMinutes("Europe/Helsinki"))
       .replace("{{current_weekday}}", getWeekdayAtTimeZone(now, "Europe/Helsinki"))
       .replace("{{user_info}}", this.getUserInfo())
       .replace("{{user_memories}}", this.getUserMemories());
+  }
+
+  private getSystemReminder(): string {
+    const now = new Date();
+    return `<system_reminder>
+Current time: ${getTimeAtTimeZone(now.toISOString(), "Europe/Helsinki")}
+</system_reminder>`;
   }
 
   private getUserInfo(): string {
