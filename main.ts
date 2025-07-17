@@ -61,7 +61,7 @@ export default {
     if (importMatch) return importRoute(db)(req);
 
     const transcribeMatch = transcribePattern.exec(url);
-    if (transcribeMatch) return transcribeRoute(Deno.env.get("GEMINI_API_KEY") ?? "")(req);
+    if (transcribeMatch) return transcribeRoute(db, Deno.env.get("GEMINI_API_KEY") ?? "")(req);
 
     return new Response("Not found", { status: 404 });
   },

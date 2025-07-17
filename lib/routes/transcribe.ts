@@ -1,12 +1,31 @@
 import { GoogleGenAI } from "@google/genai";
+import { DatabaseSync } from "node:sqlite";
 import { z } from "zod";
+import { readDocumentContentBySlug } from "../db/docs.ts";
+import { KnownIngredients } from "../entities/ingredient.ts";
 
 const transcribeAudioPrompt = `
-Transcribe the following audio file into text. The user is most likely speaking Finnish. You must respond with the transcription only, in a single JSON object with a "transcript" key. Do not include any additional text or formatting; the transcription must be plain text only. If the audio contains long pauses or silence, you should still transcribe the spoken content as accurately as possible. In other words, ignore any long pauses or silence in the audio and focus on the spoken content. Your transcription should be concise and accurate, capturing the essence of what was said without unnecessary embellishments or filler words. The transcription should be in the language spoken in the audio, which is often Finnish. Your output will be used to automatically fill an input field in a web application, so it must be clean and free of any additional formatting or text.
+Transcribe the following audio file into text. The user is most likely speaking Finnish. You must respond with the transcription only, in a single JSON object with a "transcript" key. Do not include any additional text or formatting; the transcription must be plain text only. If the audio contains long pauses or silence, you should still transcribe the spoken content as accurately as possible. In other words, ignore any long pauses or silence in the audio and focus on the spoken content. Your transcription should be concise and accurate, capturing the essence of what was said without unnecessary embellishments or filler words. The transcription should be in the language spoken in the audio, which is often English or Finnish. Your output will be used to automatically fill an input field in a web application, so it must be clean and free of any additional formatting or text.
+
+The input field being filled is part of a personal trainer and food logging app which means the user may mention brands, products, or specific food items. Therefore, you should pay extra attention to accurately transcribing any brand names, product names, or specific food items mentioned in the audio. You can find food items the user has saved to the app below, you may use these to help with the transcription:
+
+<saved_food_items>
+{{saved_food_items}}
+</saved_food_items>
 `.trim();
 
-async function transcribeAudio(geminiApiKey: string, audioFile: File): Promise<string> {
+async function transcribeAudio(
+  db: DatabaseSync,
+  geminiApiKey: string,
+  audioFile: File,
+): Promise<string> {
   const ai = new GoogleGenAI({ apiKey: geminiApiKey });
+  // read the known ingredients
+  const knownIngredientsContent = readDocumentContentBySlug(db, "known-ingredients");
+  const knownIngredients = KnownIngredients.safeParse(JSON.parse(knownIngredientsContent || "{}"));
+  if (!knownIngredients.success) {
+    return "Error: Failed to parse known ingredients document.";
+  }
   // read the audio file into a base64 string
   const arrayBuffer = await audioFile.arrayBuffer();
   const uint8Array = new Uint8Array(arrayBuffer);
@@ -19,7 +38,16 @@ async function transcribeAudio(geminiApiKey: string, audioFile: File): Promise<s
   const response = await ai.models.generateContent({
     model: "gemini-2.5-flash",
     contents: [
-      { text: transcribeAudioPrompt },
+      {
+        text: transcribeAudioPrompt.replaceAll(
+          "{{saved_food_items}}",
+          JSON.stringify(
+            knownIngredients.data.ingredients.map((i) => ({ name: i.name, brand: i.brand ?? "" })),
+            null,
+            2,
+          ),
+        ),
+      },
       { inlineData: { mimeType: "audio/wav", data: base64Data } },
     ],
     config: {
@@ -42,7 +70,7 @@ interface Route {
   (req: Request): Response | Promise<Response>;
 }
 
-function transcribeRoute(geminiApiKey: string): Route {
+function transcribeRoute(db: DatabaseSync, geminiApiKey: string): Route {
   return async (req: Request) => {
     if (req.method !== "POST") {
       return new Response("Method not allowed", { status: 405 });
@@ -53,7 +81,7 @@ function transcribeRoute(geminiApiKey: string): Route {
       if (!audioFile) {
         return new Response("No audio file provided", { status: 400 });
       }
-      const transcript = await transcribeAudio(geminiApiKey, audioFile);
+      const transcript = await transcribeAudio(db, geminiApiKey, audioFile);
       const result = JSON.stringify({ transcript });
       return new Response(result, { headers: { "content-type": "application/json" } });
     } catch (error) {
