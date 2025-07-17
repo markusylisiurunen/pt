@@ -5,13 +5,23 @@ import { readDocumentContentBySlug } from "../db/docs.ts";
 import { KnownIngredients } from "../entities/ingredient.ts";
 
 const transcribeAudioPrompt = `
-Transcribe the following audio file into text. The user is most likely speaking Finnish. You must respond with the transcription only, in a single JSON object with a "transcript" key. Do not include any additional text or formatting; the transcription must be plain text only. If the audio contains long pauses or silence, you should still transcribe the spoken content as accurately as possible. In other words, ignore any long pauses or silence in the audio and focus on the spoken content. Your transcription should be concise and accurate, capturing the essence of what was said without unnecessary embellishments or filler words. The transcription should be in the language spoken in the audio, which is often English or Finnish. Your output will be used to automatically fill an input field in a web application, so it must be clean and free of any additional formatting or text.
+Transcribe the following audio file into text. The user is most likely speaking Finnish or English.
 
-The input field being filled is part of a personal trainer and food logging app which means the user may mention brands, products, or specific food items. Therefore, you should pay extra attention to accurately transcribing any brand names, product names, or specific food items mentioned in the audio. You can find food items the user has saved to the app below, you may use these to help with the transcription:
+You must respond with a single, raw JSON object with a "transcript" key. Do not include any additional text, formatting, or markdown. Your output must be only the JSON object.
+
+The goal is a clean, readable transcription. Your output must:
+
+1. **Omit all filler words** (e.g., "um", "uh", "niinku") and verbal tics.
+2. **Ignore long pauses** and silence, focusing only on the core spoken content.
+3. **Use appropriate basic punctuation** to form a coherent sentence or phrase.
+
+The transcription will fill an input field in a personal trainer/food logging app. Therefore, pay extra attention to accurately transcribing any brand names, product names, or specific food items. You can use the following list of the user's saved food items to improve accuracy (especially for food and brand names):
 
 <saved_food_items>
 {{saved_food_items}}
 </saved_food_items>
+
+Your performance is analyzed using Word Error Rate (WER) against a "cleaned" ground truth transcription. This reference transcript has already had all filler words removed and correct punctuation inferred. Therefore, to achieve a low WER, you must precisely follow the cleaning rules above and perfectly capture the essential words, especially food and brand names.
 `.trim();
 
 async function transcribeAudio(
