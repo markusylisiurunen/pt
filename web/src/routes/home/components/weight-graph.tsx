@@ -1,6 +1,7 @@
 import { GoalIcon } from "lucide-react";
 import React, { useMemo, useState } from "react";
 import { Label, Line, LineChart, ReferenceLine, ResponsiveContainer, YAxis } from "recharts";
+import { Toggle } from "../../../components/toggle";
 import { calculateSmoothWeightHistory } from "../../../util/transform";
 
 function formatDate(dateStr: string): string {
@@ -33,6 +34,8 @@ const WeightGraph: React.FC<WeightGraphProps> = ({ now, history, targetDate, tar
   if (movingAverageDays > 1) {
     history = calculateSmoothWeightHistory(history, movingAverageDays);
   }
+
+  const [hideWeights, setHideWeights] = useState(false);
 
   const domainMin = Math.min(...history.map((d) => d.weight), targetWeight);
   const domainMax = Math.max(...history.map((d) => d.weight), targetWeight);
@@ -101,34 +104,42 @@ const WeightGraph: React.FC<WeightGraphProps> = ({ now, history, targetDate, tar
           <LineChart data={chartData} margin={{ top: 2, right: 0, left: 0, bottom: 2 }}>
             <YAxis domain={[domainMin, domainMax]} hide={true} />
             <ReferenceLine stroke="var(--color-border)" strokeDasharray="4 4" y={domainMax}>
-              <Label
-                dy={14}
-                fill="var(--color-text)"
-                fillOpacity={0.75}
-                fontFamily="GeistMono, monospace"
-                fontSize={14}
-                letterSpacing="-0.04em"
-              >{`${domainMax.toLocaleString("fi-FI", { maximumFractionDigits: 1 })} kg`}</Label>
+              {!hideWeights ? (
+                <Label
+                  dy={14}
+                  fill="var(--color-text)"
+                  fillOpacity={0.75}
+                  fontFamily="GeistMono, monospace"
+                  fontSize={14}
+                  letterSpacing="-0.04em"
+                >{`${domainMax.toLocaleString("fi-FI", { maximumFractionDigits: 1 })} kg`}</Label>
+              ) : null}
             </ReferenceLine>
             <ReferenceLine stroke="var(--color-border)" strokeDasharray="4 4" y={domainMin}>
-              <Label
-                dy={-14}
-                fill="var(--color-text)"
-                fillOpacity={0.75}
-                fontFamily="GeistMono, monospace"
-                fontSize={14}
-                letterSpacing="-0.04em"
-              >{`${domainMin.toLocaleString("fi-FI", { maximumFractionDigits: 1 })} kg`}</Label>
+              {!hideWeights ? (
+                <Label
+                  dy={-14}
+                  fill="var(--color-text)"
+                  fillOpacity={0.75}
+                  fontFamily="GeistMono, monospace"
+                  fontSize={14}
+                  letterSpacing="-0.04em"
+                >{`${domainMin.toLocaleString("fi-FI", { maximumFractionDigits: 1 })} kg`}</Label>
+              ) : null}
             </ReferenceLine>
             <ReferenceLine stroke="var(--color-border)" strokeDasharray="4 4" y={domainCurrent}>
-              <Label
-                dy={domainCurrent > 0.5 * (domainMin + domainMax) ? 14 : -14}
-                fill="var(--color-text)"
-                fillOpacity={1}
-                fontFamily="GeistMono, monospace"
-                fontSize={14}
-                letterSpacing="-0.04em"
-              >{`${domainCurrent.toLocaleString("fi-FI", { maximumFractionDigits: 1 })} kg`}</Label>
+              {!hideWeights ? (
+                <Label
+                  dy={domainCurrent > 0.5 * (domainMin + domainMax) ? 14 : -14}
+                  fill="var(--color-text)"
+                  fillOpacity={1}
+                  fontFamily="GeistMono, monospace"
+                  fontSize={14}
+                  letterSpacing="-0.04em"
+                >{`${domainCurrent.toLocaleString("fi-FI", {
+                  maximumFractionDigits: 1,
+                })} kg`}</Label>
+              ) : null}
             </ReferenceLine>
             <Line
               activeDot={false}
@@ -163,21 +174,24 @@ const WeightGraph: React.FC<WeightGraphProps> = ({ now, history, targetDate, tar
       <div className="moving-average">
         <div>
           <span>Keskiarvo (3 pv)</span>
-          <button
-            className="toggle"
-            onClick={() => setMovingAverageDays((prev) => (prev === 3 ? 1 : 3))}
-          >
-            {movingAverageDays === 3 ? "Päällä" : "Pois päältä"}
-          </button>
+          <Toggle
+            isActive={movingAverageDays === 3}
+            onToggle={() => setMovingAverageDays((prev) => (prev === 3 ? 1 : 3))}
+          />
         </div>
         <div>
           <span>Keskiarvo (7 pv)</span>
-          <button
-            className="toggle"
-            onClick={() => setMovingAverageDays((prev) => (prev === 7 ? 1 : 7))}
-          >
-            {movingAverageDays === 7 ? "Päällä" : "Pois päältä"}
-          </button>
+          <Toggle
+            isActive={movingAverageDays === 7}
+            onToggle={() => setMovingAverageDays((prev) => (prev === 7 ? 1 : 7))}
+          />
+        </div>
+        <div>
+          <span>Piilota painot</span>
+          <Toggle
+            isActive={hideWeights}
+            onToggle={() => setHideWeights((prev) => (prev === true ? false : true))}
+          />
         </div>
       </div>
     </div>

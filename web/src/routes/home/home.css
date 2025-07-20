@@ -203,22 +203,6 @@
 .home-root .weight-graph .moving-average span {
   opacity: 0.75;
 }
-.home-root .weight-graph .moving-average button {
-  align-items: center;
-  appearance: none;
-  background: transparent;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--color-border-muted);
-  color: var(--color-text);
-  cursor: pointer;
-  display: flex;
-  font-weight: 500;
-  height: 32px;
-  justify-content: space-between;
-  margin: 0px;
-  outline: none;
-  padding: 0px 8px;
-}
 
 /* food log entries */
 .home-root .food-log-entries {
