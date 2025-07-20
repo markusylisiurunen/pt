@@ -229,7 +229,7 @@
 .chat-root .md h1,
 .chat-root .md h2,
 .chat-root .md h3 {
-  margin-block: 0.5em;
+  margin-block: 1em 0.5em;
 }
 .chat-root .md h1 {
   font-size: 1.4em;

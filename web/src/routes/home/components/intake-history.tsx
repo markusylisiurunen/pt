@@ -83,7 +83,7 @@ const IntakeHistory: React.FC<IntakeHistoryProps> = ({ target, history }) => {
                 fill: "var(--color-text)",
                 fillOpacity: 0.75,
                 fontFamily: "GeistMono, monospace",
-                fontSize: 12,
+                fontSize: 11,
                 letterSpacing: "-0.04em",
                 position: "top",
               }}

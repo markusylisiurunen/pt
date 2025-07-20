@@ -1,6 +1,7 @@
 import { GoalIcon } from "lucide-react";
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import { Label, Line, LineChart, ReferenceLine, ResponsiveContainer, YAxis } from "recharts";
+import { calculateSmoothWeightHistory } from "../../../util/transform";
 
 function formatDate(dateStr: string): string {
   const date = new Date(dateStr);
@@ -28,6 +29,11 @@ type WeightGraphProps = {
   targetWeight: number;
 };
 const WeightGraph: React.FC<WeightGraphProps> = ({ now, history, targetDate, targetWeight }) => {
+  const [movingAverageDays, setMovingAverageDays] = useState(1);
+  if (movingAverageDays > 1) {
+    history = calculateSmoothWeightHistory(history, movingAverageDays);
+  }
+
   const domainMin = Math.min(...history.map((d) => d.weight), targetWeight);
   const domainMax = Math.max(...history.map((d) => d.weight), targetWeight);
   const domainCurrent = history.at(-1)?.weight || 0;
@@ -153,6 +159,26 @@ const WeightGraph: React.FC<WeightGraphProps> = ({ now, history, targetDate, tar
       <div className="dates">
         <span>{formatDate(history.at(0)?.date ?? new Date().toISOString())}</span>
         <span>{formatDate(targetDate)}</span>
+      </div>
+      <div className="moving-average">
+        <div>
+          <span>Keskiarvo (3 pv)</span>
+          <button
+            className="toggle"
+            onClick={() => setMovingAverageDays((prev) => (prev === 3 ? 1 : 3))}
+          >
+            {movingAverageDays === 3 ? "Päällä" : "Pois päältä"}
+          </button>
+        </div>
+        <div>
+          <span>Keskiarvo (7 pv)</span>
+          <button
+            className="toggle"
+            onClick={() => setMovingAverageDays((prev) => (prev === 7 ? 1 : 7))}
+          >
+            {movingAverageDays === 7 ? "Päällä" : "Pois päältä"}
+          </button>
+        </div>
       </div>
     </div>
   );

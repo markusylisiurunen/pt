@@ -45,7 +45,7 @@
 .training-program-root .md h1,
 .training-program-root .md h2,
 .training-program-root .md h3 {
-  margin-block: 0.5em;
+  margin-block: 1em 0.5em;
 }
 .training-program-root .md h1 {
   font-size: 1.4em;
