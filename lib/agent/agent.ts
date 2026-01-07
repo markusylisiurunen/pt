@@ -48,8 +48,8 @@ class Agent {
   private client: Anthropic;
   private db: DatabaseSync;
 
-  private largeModel: Anthropic.Model = "claude-sonnet-4-0";
-  private smallModel: Anthropic.Model = "claude-claude-3-5-haiku-latest";
+  private largeModel: Anthropic.Model = "claude-haiku-4-5";
+  private smallModel: Anthropic.Model = "claude-haiku-4-5";
 
   constructor(anthropicApiKey: string, geminiApiKey: string, db: DatabaseSync) {
     this.id = crypto.randomUUID();
