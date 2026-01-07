@@ -3,6 +3,7 @@ import { DatabaseSync } from "node:sqlite";
 import z from "zod";
 import { readDocumentContentBySlug, writeDocumentContentBySlug } from "../db/docs.ts";
 import { Log } from "../entities/log.ts";
+import { getIsoAtStartOfDayAtTimeZone } from "../util/datetime.ts";
 
 const description = `
 Append a food intake log entry to the user's log. Leave the 'date' field empty unless the user explicitly specifies a date.
@@ -73,8 +74,8 @@ function executeAppendFoodLogEntryTool(db: DatabaseSync, input: unknown): string
     date: z.string().optional(),
     description: z.string(),
     notes: z.string().optional(),
-    kcal: z.number().min(0).optional(),
-    protein: z.number().min(0).optional(),
+    kcal: z.number().min(0),
+    protein: z.number().min(0),
   });
   const parsed = inputSchema.safeParse(input);
   if (!parsed.success) {
@@ -97,7 +98,9 @@ function executeAppendFoodLogEntryTool(db: DatabaseSync, input: unknown): string
 
   log.data.entries.push({
     id: id,
-    ts: parsed.data.date ? new Date(parsed.data.date).toISOString() : new Date().toISOString(),
+    ts: parsed.data.date
+      ? getIsoAtStartOfDayAtTimeZone(parsed.data.date, "Europe/Helsinki")
+      : new Date().toISOString(),
     kind: "food",
     description: parsed.data.description,
     notes: parsed.data.notes,

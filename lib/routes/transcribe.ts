@@ -1,4 +1,5 @@
 import { GoogleGenAI } from "@google/genai";
+import { Buffer } from "node:buffer";
 import { DatabaseSync } from "node:sqlite";
 import { z } from "zod";
 import { readDocumentContentBySlug } from "../db/docs.ts";
@@ -39,14 +40,10 @@ async function transcribeAudio(
   // read the audio file into a base64 string
   const arrayBuffer = await audioFile.arrayBuffer();
   const uint8Array = new Uint8Array(arrayBuffer);
-  let binaryStr = "";
-  for (let i = 0; i < uint8Array.length; i++) {
-    binaryStr += String.fromCharCode(uint8Array[i]);
-  }
-  const base64Data = btoa(binaryStr);
+  const base64Data = Buffer.from(uint8Array).toString("base64");
   // send the audio file to Gemini for transcription
   const response = await ai.models.generateContent({
-    model: "gemini-2.5-flash",
+    model: "gemini-3-flash-preview",
     contents: [
       {
         text: transcribeAudioPrompt.replaceAll(
@@ -63,7 +60,6 @@ async function transcribeAudio(
     config: {
       maxOutputTokens: 4096,
       responseMimeType: "application/json",
-      temperature: 0.2,
       thinkingConfig: { thinkingBudget: 0 },
     },
   });

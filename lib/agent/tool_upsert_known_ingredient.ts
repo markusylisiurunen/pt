@@ -70,21 +70,20 @@ function executeUpsertKnownIngredientTool(db: DatabaseSync, input: unknown): str
   }
 
   if (parsed.data.id) {
-    knownIngredients.data.ingredients = knownIngredients.data.ingredients.map((ingredient) => {
-      if (ingredient.id !== parsed.data.id) {
-        return ingredient;
-      }
-      return {
-        id: ingredient.id,
-        name: parsed.data.name,
-        brand: parsed.data.brand,
-        unit: parsed.data.unit,
-        nutrients: {
-          kcal: parsed.data.kcal,
-          protein: parsed.data.protein,
-        },
-      };
-    });
+    const index = knownIngredients.data.ingredients.findIndex((i) => i.id === parsed.data.id);
+    if (index === -1) {
+      return `Error: Ingredient with ID ${parsed.data.id} not found.`;
+    }
+    knownIngredients.data.ingredients[index] = {
+      id: parsed.data.id,
+      name: parsed.data.name,
+      brand: parsed.data.brand,
+      unit: parsed.data.unit,
+      nutrients: {
+        kcal: parsed.data.kcal,
+        protein: parsed.data.protein,
+      },
+    };
   } else {
     knownIngredients.data.ingredients.push({
       id: crypto.randomUUID(),

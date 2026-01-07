@@ -51,7 +51,11 @@ function executeReadDocumentTool(db: DatabaseSync, input: unknown): string {
     const jsonDocSlugs = ["config", "log", "known-ingredients"];
     const content = readDocumentContentBySlug(db, parsed.data.slug);
     if (content && jsonDocSlugs.includes(parsed.data.slug)) {
-      return JSON.stringify(JSON.parse(content), null, 2);
+      try {
+        return JSON.stringify(JSON.parse(content), null, 2);
+      } catch {
+        return "Error: Failed to parse document.";
+      }
     }
     return content;
   }

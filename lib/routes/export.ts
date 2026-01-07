@@ -35,6 +35,10 @@ for (const slug of slugs) {
 
 function exportRoute(db: DatabaseSync, password: string): Route {
   return (req: Request) => {
+    if (req.method !== "GET") {
+      return new Response("Method not allowed", { status: 405 });
+    }
+
     const slugs = ["config", "log", "known-ingredients", "training-program"];
     const documents = slugs.map((slug) => {
       const content = readDocumentContentBySlug(db, slug);
@@ -48,7 +52,10 @@ function exportRoute(db: DatabaseSync, password: string): Route {
     const exportScriptContent = exportScript
       .replace("{{documents}}", JSON.stringify(documents))
       .replace("{{importScript}}", JSON.stringify({ script: importScriptContent }));
-    return new Response(exportScriptContent, { status: 200 });
+    return new Response(exportScriptContent, {
+      status: 200,
+      headers: { "content-type": "text/plain; charset=utf-8" },
+    });
   };
 }
 

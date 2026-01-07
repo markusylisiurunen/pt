@@ -2,7 +2,7 @@ import { DatabaseSync } from "node:sqlite";
 import { readDocumentContentBySlug } from "../db/docs.ts";
 import { Config } from "../entities/config.ts";
 import { FoodLogEntry, Log } from "../entities/log.ts";
-import { getDateAtTimeZone } from "../util/datetime.ts";
+import { getDateAtTimeZone, getIsoAtStartOfDayAtTimeZone } from "../util/datetime.ts";
 
 interface Route {
   (req: Request): Response | Promise<Response>;
@@ -39,12 +39,15 @@ function configRoute(db: DatabaseSync): Route {
       return sum + (i.protein ?? 0);
     }, 0);
     // grab the food intake history for the last 14 days
+    const nowDayStart = new Date(getIsoAtStartOfDayAtTimeZone(nowDateStr, "Europe/Helsinki"))
+      .getTime();
     const foodIntakeHistory = log.data.entries
       .filter((i): i is FoodLogEntry => i.kind === "food")
       .filter((i) => {
         const dateStr = getDateAtTimeZone(i.ts, "Europe/Helsinki");
-        const nowStr = getDateAtTimeZone(new Date().toISOString(), "Europe/Helsinki");
-        const diff = new Date(nowStr).getTime() - new Date(dateStr).getTime();
+        const dayStart = new Date(getIsoAtStartOfDayAtTimeZone(dateStr, "Europe/Helsinki"))
+          .getTime();
+        const diff = nowDayStart - dayStart;
         return diff > 0 && diff <= 14 * 24 * 3600 * 1000;
       })
       .reduce((acc, i) => {
@@ -61,7 +64,7 @@ function configRoute(db: DatabaseSync): Route {
       kcal: intake.kcal,
       protein: intake.protein,
     }));
-    foodIntakeHistoryArray.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    foodIntakeHistoryArray.sort((a, b) => a.date.localeCompare(b.date));
     // filter the weight history to the last 3 months
     const weightHistoryMinDate = new Date();
     weightHistoryMinDate.setDate(weightHistoryMinDate.getDate() - 3 * 28);

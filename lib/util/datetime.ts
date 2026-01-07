@@ -16,18 +16,8 @@ function getTimeAtTimeZone(date: string | Date, timeZone: string): string {
   return `${getPart("hour")}:${getPart("minute")}:${getPart("second")}`;
 }
 
-function getTimeZoneOffsetInMinutes(timeZone: string) {
-  const utcFormatter = new Intl.DateTimeFormat("en-US", {
-    timeZone: "UTC",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-    hour12: false,
-  });
-  const timeZoneFormatter = new Intl.DateTimeFormat("en-US", {
+function getTimeZoneOffsetInMinutesAtDate(date: Date, timeZone: string) {
+  const formatter = new Intl.DateTimeFormat("en-US", {
     timeZone: timeZone,
     year: "numeric",
     month: "2-digit",
@@ -37,10 +27,45 @@ function getTimeZoneOffsetInMinutes(timeZone: string) {
     second: "2-digit",
     hour12: false,
   });
-  const now = new Date().toISOString();
-  const utcDate = new Date(utcFormatter.format(new Date(now)));
-  const timeZoneDate = new Date(timeZoneFormatter.format(new Date(now)));
-  return (timeZoneDate.getTime() - utcDate.getTime()) / 60000;
+  const parts = formatter.formatToParts(date);
+  const getPart = (part: string) => parts.find((p) => p.type === part)?.value || "";
+  const asUtc = Date.UTC(
+    Number(getPart("year")),
+    Number(getPart("month")) - 1,
+    Number(getPart("day")),
+    Number(getPart("hour")),
+    Number(getPart("minute")),
+    Number(getPart("second")),
+  );
+  return (asUtc - date.getTime()) / 60000;
+}
+
+function getTimeZoneOffsetInMinutes(timeZone: string, date: string | Date = new Date()) {
+  return getTimeZoneOffsetInMinutesAtDate(new Date(date), timeZone);
+}
+
+function getIsoAtStartOfDayAtTimeZone(dateStr: string, timeZone: string): string {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dateStr);
+  if (!match) {
+    throw new Error(`Invalid date: ${dateStr}`);
+  }
+
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+
+  const utcMidnight = Date.UTC(year, month - 1, day, 0, 0, 0);
+
+  let ts = utcMidnight;
+  const offset = getTimeZoneOffsetInMinutesAtDate(new Date(ts), timeZone);
+  ts = utcMidnight - offset * 60000;
+
+  const offset2 = getTimeZoneOffsetInMinutesAtDate(new Date(ts), timeZone);
+  if (offset2 !== offset) {
+    ts = utcMidnight - offset2 * 60000;
+  }
+
+  return new Date(ts).toISOString();
 }
 
 function getWeekdayAtTimeZone(date: string | Date, timeZone: string): string {
@@ -52,4 +77,10 @@ function getWeekdayAtTimeZone(date: string | Date, timeZone: string): string {
   return getPart("weekday");
 }
 
-export { getDateAtTimeZone, getTimeAtTimeZone, getTimeZoneOffsetInMinutes, getWeekdayAtTimeZone };
+export {
+  getDateAtTimeZone,
+  getIsoAtStartOfDayAtTimeZone,
+  getTimeAtTimeZone,
+  getTimeZoneOffsetInMinutes,
+  getWeekdayAtTimeZone,
+};

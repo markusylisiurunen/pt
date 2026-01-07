@@ -67,7 +67,7 @@ async function executeSearchFineliTool(
   input: unknown,
 ): Promise<string> {
   const inputSchema = z.object({
-    query: z.string(),
+    query: z.string().min(1),
   });
   const parsed = inputSchema.safeParse(input);
   if (!parsed.success) {
@@ -81,8 +81,9 @@ async function executeSearchFineliTool(
     batches.push(fineli.slice(i, i + BATCH_SIZE));
   }
 
+  const query = parsed.data.query.trim();
   const results = await Promise.all(
-    batches.map((batch) => launchSearchAgent(geminiApiKey, parsed.data.query, batch)),
+    batches.map((batch) => launchSearchAgent(geminiApiKey, query, batch)),
   );
 
   return results.map((result, index) => `Result set ${index + 1}:\n${result}`)
@@ -131,23 +132,28 @@ Database:
 ${formatBatchForPrompt(batch)}
   `.trim();
   const ai = new GoogleGenAI({ apiKey: geminiApiKey });
-  const response = await ai.models.generateContent({
-    model: "gemini-2.5-flash",
-    contents: prompt,
-    config: {
-      maxOutputTokens: 4096,
-      temperature: 0.2,
-      thinkingConfig: { thinkingBudget: 0 },
-    },
-  });
-  return response.text?.trim() ?? "Ei osumia.";
+  try {
+    const response = await ai.models.generateContent({
+      model: "gemini-3-flash-preview",
+      contents: prompt,
+      config: {
+        maxOutputTokens: 4096,
+        thinkingConfig: { thinkingBudget: 0 },
+      },
+    });
+    return response.text?.trim() ?? "Ei osumia.";
+  } catch {
+    return "Error: Fineli search failed.";
+  }
 }
 
 function formatBatchForPrompt(batch: z.infer<typeof fineliSchema>) {
   const result: string[] = [];
   for (const item of batch) {
     let str = "";
-    str += `Name: ${item.name} (${item.class}, ${item.process})\n`;
+    const classStr = item.class ?? "-";
+    const processStr = item.process ?? "-";
+    str += `Name: ${item.name} (${classStr}, ${processStr})\n`;
     str += `Kcal: ${item.nutrients.kcal?.toFixed(1) ?? "n/a"}\n`;
     str += `Protein: ${item.nutrients.protein?.toFixed(1) ?? "n/a"}\n`;
     str += `Units: ${
