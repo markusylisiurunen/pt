@@ -57,9 +57,6 @@ class Agent {
     this.geminiApiKey = geminiApiKey;
     this.client = new Anthropic({
       apiKey: anthropicApiKey,
-      defaultHeaders: {
-        "anthropic-beta": "interleaved-thinking-2025-05-14",
-      },
     });
     this.db = db;
   }
@@ -69,7 +66,7 @@ class Agent {
     content: string,
     images?: { mimeType: "image/jpeg" | "image/png"; base64Data: string }[],
   ): AsyncGenerator<AgentEvent> {
-    const messages: Anthropic.MessageParam[] = this.loadChatHistory(id);
+    const messages: Anthropic.Beta.BetaMessageParam[] = this.loadChatHistory(id);
     messages.push({
       role: "user",
       content: [
@@ -79,7 +76,7 @@ class Agent {
     });
     if (images && images.length > 0) {
       for (const image of images) {
-        (messages.at(-1)!.content as Anthropic.ContentBlockParam[]).push({
+        (messages.at(-1)!.content as Anthropic.Beta.BetaContentBlockParam[]).push({
           type: "image",
           source: { type: "base64", media_type: image.mimeType, data: image.base64Data },
         });
@@ -90,8 +87,8 @@ class Agent {
 
     while (turnsLeft-- > 0) {
       this.refreshCacheBreakpoints(messages);
-      const stream = this.client.messages.stream({
-        max_tokens: 8192,
+      const stream = this.client.beta.messages.stream({
+        max_tokens: 16384,
         messages: messages,
         metadata: { user_id: this.id },
         model: this.largeModel,
@@ -102,8 +99,9 @@ class Agent {
             cache_control: { type: "ephemeral" },
           },
         ],
-        thinking: { type: "enabled", budget_tokens: 4096 },
+        thinking: { type: "enabled", budget_tokens: 8192 },
         tools: this.getTools(),
+        betas: ["interleaved-thinking-2025-05-14"],
       });
 
       for await (const chunk of stream) {
@@ -125,7 +123,7 @@ class Agent {
       }
 
       for (const toolUseBlock of toolUseBlocks) {
-        const result: Anthropic.Messages.ContentBlockParam = {
+        const result: Anthropic.Beta.Messages.BetaContentBlockParam = {
           type: "tool_result",
           tool_use_id: toolUseBlock.id,
           content: await this.callTool(toolUseBlock.name, toolUseBlock.input),
@@ -137,7 +135,7 @@ class Agent {
     this.saveChatHistory(id, messages);
   }
 
-  private loadChatHistory(chatId: string): Anthropic.MessageParam[] {
+  private loadChatHistory(chatId: string): Anthropic.Beta.BetaMessageParam[] {
     const result = this.db.prepare(`SELECT messages FROM chats WHERE id = ?`).get(chatId);
     if (!result) {
       return [];
@@ -147,7 +145,7 @@ class Agent {
     return JSON.parse(parsed.messages);
   }
 
-  private saveChatHistory(chatId: string, messages: Anthropic.MessageParam[]): void {
+  private saveChatHistory(chatId: string, messages: Anthropic.Beta.BetaMessageParam[]): void {
     const messagesJson = JSON.stringify(messages);
     const now = new Date().toISOString();
 
@@ -197,17 +195,20 @@ Current time: ${getTimeAtTimeZone(now.toISOString(), "Europe/Helsinki")}
     return "No user memories are available.";
   }
 
-  private refreshCacheBreakpoints(messages: Anthropic.MessageParam[]) {
+  private refreshCacheBreakpoints(messages: Anthropic.Beta.BetaMessageParam[]) {
     // reset cache control breakpoints
     for (let i = 0; i < messages.length; i++) {
       if (messages[i].role !== "user") continue;
       if (!Array.isArray(messages[i].content)) continue;
       for (let u = 0; u < messages[i].content.length; u++) {
-        if ((messages[i].content[u] as Anthropic.ContentBlockParam).type === "text") {
-          (messages[i].content[u] as Anthropic.TextBlockParam).cache_control = undefined;
+        if ((messages[i].content[u] as Anthropic.Beta.BetaContentBlockParam).type === "text") {
+          (messages[i].content[u] as Anthropic.Beta.BetaTextBlockParam).cache_control = undefined;
         }
-        if ((messages[i].content[u] as Anthropic.ContentBlockParam).type === "tool_result") {
-          (messages[i].content[u] as Anthropic.ToolResultBlockParam).cache_control = undefined;
+        if (
+          (messages[i].content[u] as Anthropic.Beta.BetaContentBlockParam).type === "tool_result"
+        ) {
+          (messages[i].content[u] as Anthropic.Beta.BetaToolResultBlockParam).cache_control =
+            undefined;
         }
       }
     }
@@ -219,9 +220,9 @@ Current time: ${getTimeAtTimeZone(now.toISOString(), "Europe/Helsinki")}
       let found = false;
       for (let u = messages[i].content.length - 1; u >= 0; u--) {
         if (found) break;
-        if ((messages[i].content[u] as Anthropic.ContentBlockParam).type === "text") {
+        if ((messages[i].content[u] as Anthropic.Beta.BetaContentBlockParam).type === "text") {
           found = true;
-          (messages[i].content[u] as Anthropic.TextBlockParam).cache_control = {
+          (messages[i].content[u] as Anthropic.Beta.BetaTextBlockParam).cache_control = {
             type: "ephemeral",
           };
         }
@@ -236,9 +237,11 @@ Current time: ${getTimeAtTimeZone(now.toISOString(), "Europe/Helsinki")}
       let found = false;
       for (let u = messages[i].content.length - 1; u >= 0; u--) {
         if (found) break;
-        if ((messages[i].content[u] as Anthropic.ContentBlockParam).type === "tool_result") {
+        if (
+          (messages[i].content[u] as Anthropic.Beta.BetaContentBlockParam).type === "tool_result"
+        ) {
           found = true;
-          (messages[i].content[u] as Anthropic.ToolResultBlockParam).cache_control = {
+          (messages[i].content[u] as Anthropic.Beta.BetaToolResultBlockParam).cache_control = {
             type: "ephemeral",
           };
         }
@@ -247,7 +250,7 @@ Current time: ${getTimeAtTimeZone(now.toISOString(), "Europe/Helsinki")}
     }
   }
 
-  private getTools(): Anthropic.Tool[] {
+  private getTools(): Anthropic.Beta.BetaTool[] {
     return [
       appendFoodLogEntryTool(),
       appendWeightLogEntryTool(),
