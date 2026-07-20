@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-npm ci --prefix web
-deno cache main.ts
+"$(dirname "$0")/activate"
 npm run build --prefix web
