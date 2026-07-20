@@ -124,7 +124,7 @@ function applyAgentEvent(messages: ChatMessage[], event: AgentEvent): ChatMessag
   if (event.type === "tool_use") {
     return [...messages, { role: "tool-use", name: event.name }];
   }
-  throw new Error("Chat request failed");
+  return [...messages, { role: "error" }];
 }
 
 export {

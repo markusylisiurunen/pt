@@ -74,6 +74,17 @@ Deno.test("starts a new assistant segment after a tool event", () => {
   ]);
 });
 
+Deno.test("turns structured chat failures into error messages", () => {
+  const messages: ChatMessage[] = [
+    { role: "assistant", content: "Partial" },
+  ];
+
+  assert.deepEqual(applyAgentEvent(messages, { type: "error" }), [
+    { role: "assistant", content: "Partial" },
+    { role: "error" },
+  ]);
+});
+
 Deno.test("rejects malformed chat request JSON", async () => {
   const agent = {
     async *send() {
