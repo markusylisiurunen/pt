@@ -48,7 +48,7 @@ class Agent {
   private client: Anthropic;
   private db: DatabaseSync;
 
-  private largeModel: Anthropic.Model = "claude-haiku-4-5";
+  private largeModel: Anthropic.Model = "claude-sonnet-5";
   private smallModel: Anthropic.Model = "claude-haiku-4-5";
 
   constructor(anthropicApiKey: string, geminiApiKey: string, db: DatabaseSync) {
@@ -99,9 +99,9 @@ class Agent {
             cache_control: { type: "ephemeral" },
           },
         ],
-        thinking: { type: "enabled", budget_tokens: 8192 },
+        thinking: { type: "adaptive" },
+        output_config: { effort: "low" },
         tools: this.getTools(),
-        betas: ["interleaved-thinking-2025-05-14"],
       });
 
       for await (const chunk of stream) {

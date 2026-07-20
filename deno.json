@@ -7,7 +7,7 @@
     "lineWidth": 100
   },
   "imports": {
-    "@anthropic-ai/sdk": "npm:@anthropic-ai/sdk@^0.71.2",
+    "@anthropic-ai/sdk": "npm:@anthropic-ai/sdk@^0.112.3",
     "@google/genai": "npm:@google/genai@^1.34.0",
     "@std/csv": "jsr:@std/csv@^1.0.6",
     "@std/http": "jsr:@std/http@^1.0.23",
