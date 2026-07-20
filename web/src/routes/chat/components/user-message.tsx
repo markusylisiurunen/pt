@@ -1,14 +1,15 @@
 import React from "react";
+import type { ImageAttachment } from "../chat-events";
 
 type UserMessageProps = {
   content: string;
-  images?: { mimeType: string; base64Data: string }[];
+  images: ImageAttachment[];
 };
 const UserMessage: React.FC<UserMessageProps> = ({ content, images }) => {
   return (
     <div className="user-message">
-      <p>{content}</p>
-      {images && images.length > 0 ? (
+      {content.trim() === "" ? null : <p>{content}</p>}
+      {images.length > 0 ? (
         <div>
           {images.map((image, index) => (
             <img key={index} src={image.base64Data} alt={`Image attachment ${index + 1}`} />

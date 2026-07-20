@@ -64,7 +64,7 @@ class Agent {
   async *send(
     id: string,
     content: string,
-    images?: { mimeType: "image/jpeg" | "image/png"; base64Data: string }[],
+    images: { mimeType: "image/jpeg" | "image/png"; base64Data: string }[],
   ): AsyncGenerator<AgentEvent> {
     const messages: Anthropic.Beta.BetaMessageParam[] = this.loadChatHistory(id);
     messages.push({
@@ -72,20 +72,18 @@ class Agent {
       content: [
         { type: "text", text: this.getSystemReminder() + "\n\n" },
         { type: "text", text: content },
+        ...images.map((image) => ({
+          type: "image" as const,
+          source: {
+            type: "base64" as const,
+            media_type: image.mimeType,
+            data: image.base64Data,
+          },
+        })),
       ],
     });
-    if (images && images.length > 0) {
-      for (const image of images) {
-        (messages.at(-1)!.content as Anthropic.Beta.BetaContentBlockParam[]).push({
-          type: "image",
-          source: { type: "base64", media_type: image.mimeType, data: image.base64Data },
-        });
-      }
-    }
 
-    let turnsLeft = 16;
-
-    while (turnsLeft-- > 0) {
+    for (let turn = 0; turn < 16; turn++) {
       this.refreshCacheBreakpoints(messages);
       const stream = this.client.beta.messages.stream({
         max_tokens: 16384,
@@ -113,26 +111,39 @@ class Agent {
       const message = await stream.finalMessage();
       messages.push({ role: "assistant", content: message.content });
 
-      const toolUseBlocks = message.content.filter((i) => i.type === "tool_use");
+      const toolUseBlocks = message.content.filter((block) => block.type === "tool_use");
       if (toolUseBlocks.length === 0) {
-        break;
+        this.saveChatHistory(id, messages);
+        return;
       }
 
       for (const block of toolUseBlocks) {
         yield { type: "tool_use", name: block.name };
       }
 
-      for (const toolUseBlock of toolUseBlocks) {
-        const result: Anthropic.Beta.Messages.BetaContentBlockParam = {
-          type: "tool_result",
-          tool_use_id: toolUseBlock.id,
-          content: await this.callTool(toolUseBlock.name, toolUseBlock.input),
-        };
-        messages.push({ role: "user", content: [result] });
+      const results: Anthropic.Beta.BetaToolResultBlockParam[] = [];
+      for (const block of toolUseBlocks) {
+        try {
+          results.push({
+            type: "tool_result",
+            tool_use_id: block.id,
+            content: await this.callTool(block.name, block.input),
+          });
+        } catch (error) {
+          console.error(`Tool ${block.name} failed:`, error);
+          results.push({
+            type: "tool_result",
+            tool_use_id: block.id,
+            content: `Tool failed: ${error instanceof Error ? error.message : "Unknown error"}`,
+            is_error: true,
+          });
+        }
       }
+      messages.push({ role: "user", content: results });
+      this.saveChatHistory(id, messages);
     }
 
-    this.saveChatHistory(id, messages);
+    throw new Error("Agent exceeded the maximum number of tool rounds");
   }
 
   private loadChatHistory(chatId: string): Anthropic.Beta.BetaMessageParam[] {
