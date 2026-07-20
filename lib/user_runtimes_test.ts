@@ -111,6 +111,24 @@ Deno.test("rejects invalid user mappings before opening databases", async () => 
         }),
       /Invalid user name/,
     );
+    assert.throws(
+      () =>
+        createUserRuntimes({
+          ...options,
+          users: JSON.stringify({ alice: "alice-password", Alice: "other-password" }),
+        }),
+      /user names that differ only by case/,
+    );
+    for (const password of ["trailing-space ", "line\nbreak"]) {
+      assert.throws(
+        () =>
+          createUserRuntimes({
+            ...options,
+            users: JSON.stringify({ alice: password }),
+          }),
+        /not a valid bearer credential/,
+      );
+    }
     assert.deepEqual(Array.from(Deno.readDirSync(dataFolder)), []);
   } finally {
     await Deno.remove(dataFolder, { recursive: true });

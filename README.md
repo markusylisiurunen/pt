@@ -25,9 +25,9 @@ USERS={"markus":"password-one","another-user":"password-two"}
 ```
 
 Each password signs in as its corresponding user and stores data in `$DATA_FOLDER/<user>.db`. User
-names may contain letters, numbers, underscores, and hyphens, and passwords must be unique. To move
-an existing installation to `USERS`, rename `data.db` to the chosen user's `<user>.db` before
-starting the app.
+names may contain letters, numbers, underscores, and hyphens, and must be unique regardless of case.
+Passwords must be non-empty, unique, and valid in an HTTP header. To move an existing installation
+to `USERS`, rename `data.db` to the chosen user's `<user>.db` before starting the app.
 
 Anthropic powers chat, while Gemini is used for transcription and as the agent's secondary model.
 

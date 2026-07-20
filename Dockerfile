@@ -15,7 +15,9 @@ COPY ./data/fineli/fineli.json ./data/fineli/fineli.json
 RUN printf '#!/bin/sh -eu\n\
 export ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-$(cat /run/secrets/anthropic_api_key 2>/dev/null || printf "")}\n\
 export GEMINI_API_KEY=${GEMINI_API_KEY:-$(cat /run/secrets/gemini_api_key 2>/dev/null || printf "")}\n\
-export PASSWORD=${PASSWORD:-$(cat /run/secrets/password 2>/dev/null || printf "")}\n\
+if [ -z "${USERS:-}" ]; then\n\
+  export PASSWORD=${PASSWORD:-$(cat /run/secrets/password 2>/dev/null || printf "")}\n\
+fi\n\
 exec "$@"\n' > /entrypoint.sh && chmod +x /entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]
 CMD ["deno", "serve", "-A", "main.ts"]

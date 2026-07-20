@@ -40,13 +40,27 @@ function parseUsers(users: string | undefined, password: string | undefined) {
     throw new Error("USERS must contain at least one user");
   }
 
+  const names = new Set<string>();
   const passwords = new Set<string>();
   return entries.map(([name, userPassword]) => {
     if (!/^[a-zA-Z0-9_-]+$/.test(name)) {
       throw new Error(`Invalid user name: ${name}`);
     }
+    if (names.has(name.toLowerCase())) {
+      throw new Error("USERS must not contain user names that differ only by case");
+    }
+    names.add(name.toLowerCase());
+
     if (typeof userPassword !== "string" || !userPassword) {
       throw new Error(`Password for user ${name} must be a non-empty string`);
+    }
+    const authorization = `Bearer ${userPassword}`;
+    try {
+      if (new Headers({ authorization }).get("authorization") !== authorization) {
+        throw new Error();
+      }
+    } catch {
+      throw new Error(`Password for user ${name} is not a valid bearer credential`);
     }
     if (passwords.has(userPassword)) {
       throw new Error("USERS must not contain duplicate passwords");
