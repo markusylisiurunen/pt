@@ -1,8 +1,9 @@
 {
   "tasks": {
-    "check": "deno fmt --check main.ts lib deno.json && deno task lint && deno check main.ts && deno task web:check",
+    "check": "deno fmt --check main.ts lib deno.json && deno task lint && deno check main.ts && deno task test && deno task web:check",
     "dev": "deno serve --env-file --watch -A main.ts",
     "lint": "deno lint main.ts lib",
+    "test": "deno test --allow-env --allow-read --allow-write",
     "web:check": "npm run lint --prefix web && npm run build --prefix web"
   },
   "fmt": {
