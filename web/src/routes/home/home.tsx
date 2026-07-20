@@ -17,7 +17,7 @@ const HomeRoute: React.FC = () => {
   const [dailyTarget, setDailyTarget] = useState({ kcal: 0, protein: 0 });
   const [intakeHistory, setIntakeHistory] = useState<{ date: string; kcal: number }[]>([]);
   const [weightHistory, setWeightHistory] = useState<{ date: string; weight: number }[]>([]);
-  const [targetWeightDate, setTargetWeightDate] = useState<string>("");
+  const [targetWeightDate, setTargetWeightDate] = useState<string | null>(null);
   const [targetWeightValue, setTargetWeightValue] = useState<number>(0);
   const [foodLogToday, setFoodLogToday] = useState<
     {
@@ -111,12 +111,14 @@ const HomeRoute: React.FC = () => {
           maximumFractionDigits={1}
         />
       </div>
-      <WeightGraph
-        now={now}
-        history={weightHistory}
-        targetDate={targetWeightDate}
-        targetWeight={targetWeightValue}
-      />
+      {targetWeightDate !== null ? (
+        <WeightGraph
+          now={now}
+          history={weightHistory}
+          targetDate={targetWeightDate}
+          targetWeight={targetWeightValue}
+        />
+      ) : null}
       <IntakeHistory target={dailyTarget.kcal} history={intakeHistory} />
       <FoodLogEntries entries={foodLogToday} />
       <Link to="/training-program">
