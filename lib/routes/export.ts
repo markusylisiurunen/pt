@@ -21,7 +21,7 @@ for (const slug of slugs) {
     method: 'POST',
     headers: {
       'content-type': 'application/json',
-      'authorization': 'Bearer {{password}}',
+      'authorization': {{authorization}},
     },
     body: JSON.stringify({ slug, content }),
   });
@@ -48,7 +48,7 @@ function exportRoute(db: DatabaseSync, password: string): Route {
       .replace("{{slugs}}", JSON.stringify(slugs))
       .replace("{{protocol}}", new URL(req.url).protocol.includes("https") ? "https" : "http")
       .replace("{{host}}", new URL(req.url).host)
-      .replace("{{password}}", password);
+      .replace("{{authorization}}", JSON.stringify(`Bearer ${password}`));
     const exportScriptContent = exportScript
       .replace("{{documents}}", JSON.stringify(documents))
       .replace("{{importScript}}", JSON.stringify({ script: importScriptContent }));

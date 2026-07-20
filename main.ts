@@ -1,25 +1,24 @@
-import { DatabaseSync } from "node:sqlite";
-import { migrateDocuments, migrateSchema } from "./lib/db/migrate.ts";
-
-const db = new DatabaseSync(`${Deno.env.get("DATA_FOLDER") || "."}/data.db`);
-
-migrateSchema(db);
-migrateDocuments(db);
-
 import { serveDir } from "@std/http";
-import { Agent } from "./lib/agent/agent.ts";
 import { chatRoute } from "./lib/routes/chat.ts";
 import { configRoute } from "./lib/routes/config.ts";
 import { docsRoute } from "./lib/routes/docs.ts";
 import { exportRoute } from "./lib/routes/export.ts";
 import { importRoute } from "./lib/routes/import.ts";
 import { transcribeRoute } from "./lib/routes/transcribe.ts";
+import { authenticateUser, closeUserRuntimes, createUserRuntimes } from "./lib/user_runtimes.ts";
 
 const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY") ?? "";
 const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY") ?? "";
 
-const password = Deno.env.get("PASSWORD") || crypto.randomUUID();
-const agent = new Agent(ANTHROPIC_API_KEY, GEMINI_API_KEY, db);
+const runtimes = createUserRuntimes({
+  users: Deno.env.get("USERS"),
+  password: Deno.env.get("PASSWORD"),
+  dataFolder: Deno.env.get("DATA_FOLDER") || ".",
+  anthropicApiKey: ANTHROPIC_API_KEY,
+  geminiApiKey: GEMINI_API_KEY,
+});
+
+addEventListener("unload", () => closeUserRuntimes(runtimes));
 
 const chatPattern = new URLPattern({ pathname: "/api/chats/:id" });
 const configPattern = new URLPattern({ pathname: "/api/config" });
@@ -40,28 +39,28 @@ export default {
       return response;
     }
 
-    const auth = req.headers.get("authorization");
-    if (!auth || auth !== `Bearer ${password}`) {
+    const runtime = authenticateUser(runtimes, req.headers.get("authorization"));
+    if (!runtime) {
       return new Response("Unauthorized", { status: 401 });
     }
 
     const chatMatch = chatPattern.exec(url);
-    if (chatMatch) return chatRoute(agent, chatMatch.pathname.groups["id"] ?? "")(req);
+    if (chatMatch) return chatRoute(runtime.agent, chatMatch.pathname.groups["id"] ?? "")(req);
 
     const configMatch = configPattern.exec(url);
-    if (configMatch) return configRoute(db)(req);
+    if (configMatch) return configRoute(runtime.db)(req);
 
     const docsMatch = docsPattern.exec(url);
-    if (docsMatch) return docsRoute(db, docsMatch.pathname.groups["slug"] ?? "")(req);
+    if (docsMatch) return docsRoute(runtime.db, docsMatch.pathname.groups["slug"] ?? "")(req);
 
     const exportMatch = exportPattern.exec(url);
-    if (exportMatch) return exportRoute(db, password)(req);
+    if (exportMatch) return exportRoute(runtime.db, runtime.password)(req);
 
     const importMatch = importPattern.exec(url);
-    if (importMatch) return importRoute(db)(req);
+    if (importMatch) return importRoute(runtime.db)(req);
 
     const transcribeMatch = transcribePattern.exec(url);
-    if (transcribeMatch) return transcribeRoute(db, Deno.env.get("GEMINI_API_KEY") ?? "")(req);
+    if (transcribeMatch) return transcribeRoute(runtime.db, GEMINI_API_KEY)(req);
 
     return new Response("Not found", { status: 404 });
   },
