@@ -5,6 +5,8 @@ import { z } from "zod";
 import { readDocumentContentBySlug } from "../db/docs.ts";
 import { KnownIngredients } from "../entities/ingredient.ts";
 
+const audioMimeTypes = new Set(["audio/mp4", "audio/ogg", "audio/wav", "audio/webm"]);
+
 const transcribeAudioPrompt = `
 Transcribe the following audio file into text. The user is most likely speaking Finnish or English.
 
@@ -29,6 +31,7 @@ async function transcribeAudio(
   db: DatabaseSync,
   geminiApiKey: string,
   audioFile: File,
+  mimeType: string,
 ): Promise<string> {
   const ai = new GoogleGenAI({ apiKey: geminiApiKey });
   // read the known ingredients
@@ -55,7 +58,7 @@ async function transcribeAudio(
           ),
         ),
       },
-      { inlineData: { mimeType: "audio/wav", data: base64Data } },
+      { inlineData: { mimeType, data: base64Data } },
     ],
     config: {
       maxOutputTokens: 4096,
@@ -81,13 +84,25 @@ function transcribeRoute(db: DatabaseSync, geminiApiKey: string): Route {
     if (req.method !== "POST") {
       return new Response("Method not allowed", { status: 405 });
     }
+
+    let formData: FormData;
     try {
-      const formData = await req.formData();
-      const audioFile = formData.get("audio") as File;
-      if (!audioFile) {
-        return new Response("No audio file provided", { status: 400 });
-      }
-      const transcript = await transcribeAudio(db, geminiApiKey, audioFile);
+      formData = await req.formData();
+    } catch {
+      return new Response("Invalid payload", { status: 400 });
+    }
+
+    const audioFile = formData.get("audio");
+    if (!(audioFile instanceof File)) {
+      return new Response("No audio file provided", { status: 400 });
+    }
+    const mimeType = audioFile.type.split(";", 1)[0];
+    if (!audioMimeTypes.has(mimeType)) {
+      return new Response("Unsupported audio format", { status: 400 });
+    }
+
+    try {
+      const transcript = await transcribeAudio(db, geminiApiKey, audioFile, mimeType);
       const result = JSON.stringify({ transcript });
       return new Response(result, { headers: { "content-type": "application/json" } });
     } catch (error) {

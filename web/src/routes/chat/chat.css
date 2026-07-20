@@ -218,6 +218,12 @@
   opacity: 0.5;
 }
 
+.chat-root .chat-error {
+  color: var(--color-text);
+  margin-inline: 12px;
+  opacity: 0.6;
+}
+
 /* markdown styles */
 .chat-root .md > :first-child {
   margin-block-start: 0 !important;

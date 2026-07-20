@@ -3,6 +3,12 @@ import React, { useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { getSafeAreaInsets } from "../../util/safe-area";
 import "./chat.css";
+import {
+  applyAgentEvent,
+  type ChatMessage,
+  type ImageAttachment,
+  readAgentEvents,
+} from "./chat-events";
 import { AssistantMessage } from "./components/assistant-message";
 import { AudioButton } from "./components/audio-button";
 import { ToolUseMessage } from "./components/tool-use-message";
@@ -21,20 +27,10 @@ const GREETINGS = [
   "Hei! Mitä asiaa? Olen tässä apuna.",
 ];
 
-type ImageAttachment = {
-  mimeType: string;
-  base64Data: string;
-};
-
-type Message =
-  | { role: "user"; content: string; images?: ImageAttachment[] }
-  | { role: "assistant"; content: string }
-  | { role: "tool-use"; name: string };
-
 const ChatRoute: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
-  const [messages, setMessages] = useState<Message[]>([
+  const [messages, setMessages] = useState<ChatMessage[]>([
     {
       role: "assistant",
       content: GREETINGS[Math.floor(Math.random() * GREETINGS.length)],
@@ -70,10 +66,10 @@ const ChatRoute: React.FC = () => {
   async function sendMessage() {
     if ((!input.trim() && images.length === 0) || isStreaming) return;
 
-    const userMessage: Message = {
-      role: "user" as const,
+    const userMessage: ChatMessage = {
+      role: "user",
       content: input,
-      images: images.length > 0 ? images : undefined,
+      images,
     };
 
     setMessages((prev) => [...prev, userMessage]);
@@ -114,60 +110,16 @@ const ChatRoute: React.FC = () => {
         throw new Error("Failed to send message");
       }
 
-      const reader = response.body?.getReader();
-      if (!reader) {
+      if (!response.body) {
         throw new Error("No response body");
       }
 
-      let currentAssistantMessage = "";
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        const chunk = new TextDecoder().decode(value);
-        const lines = chunk.split("\n");
-
-        for (const line of lines) {
-          if (line.startsWith("data: ")) {
-            const data = line.slice(6);
-            if (data === "[DONE]") break;
-
-            try {
-              const event = JSON.parse(data);
-              if (event.type === "content_delta") {
-                currentAssistantMessage += event.content;
-                setMessages((prev) => {
-                  const newMessages = [...prev];
-                  const lastMessage = newMessages[newMessages.length - 1];
-                  if (lastMessage?.role === "assistant") {
-                    lastMessage.content = currentAssistantMessage;
-                  } else {
-                    newMessages.push({
-                      role: "assistant",
-                      content: currentAssistantMessage,
-                    });
-                  }
-                  return newMessages;
-                });
-              } else if (event.type === "tool_use") {
-                if (currentAssistantMessage) {
-                  setMessages((prev) => [
-                    ...prev,
-                    { role: "assistant", content: currentAssistantMessage },
-                  ]);
-                  currentAssistantMessage = "";
-                }
-                setMessages((prev) => [...prev, { role: "tool-use", name: event.name }]);
-              }
-            } catch (e) {
-              console.error("Failed to parse event:", e);
-            }
-          }
-        }
+      for await (const event of readAgentEvents(response.body)) {
+        setMessages((messages) => applyAgentEvent(messages, event));
       }
     } catch (error) {
       console.error("Error sending message:", error);
+      setMessages((messages) => [...messages, { role: "error" }]);
     } finally {
       setIsStreaming(false);
     }
@@ -186,9 +138,6 @@ const ChatRoute: React.FC = () => {
           const spacer = index > 0 ? <div style={{ height: 16 }} /> : null;
           switch (message.role) {
             case "user":
-              if (message.content.trim() === "") {
-                return null;
-              }
               return (
                 <React.Fragment key={message.role + "-" + index}>
                   {spacer}
@@ -212,8 +161,13 @@ const ChatRoute: React.FC = () => {
                   <ToolUseMessage name={message.name} />
                 </React.Fragment>
               );
-            default:
-              return null;
+            case "error":
+              return (
+                <React.Fragment key={message.role + "-" + index}>
+                  {spacer}
+                  <div className="chat-error">Vastauksen lähettäminen epäonnistui.</div>
+                </React.Fragment>
+              );
           }
         })}
       </div>
