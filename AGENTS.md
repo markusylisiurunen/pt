@@ -77,15 +77,20 @@ architecture, verification, or releases. Keep the README concise.
 
 ## Git and GitHub
 
-- Use short, imperative commit subjects. Follow the repository's existing capitalization style.
-- Use descriptive lowercase branch names without issue numbers unless a workflow supplies a branch
-  name.
-- Pull request titles should be concise and lowercase except for proper nouns.
-- Pull request bodies use `## why` and `## what`, with `## details` only when useful. End with a
-  closing keyword when the PR resolves an issue.
-- Do not list routine verification commands in PR bodies; the `check` workflow is the source of
-  truth.
+- Use `gh` for GitHub operations and omit `--repo` when the current checkout identifies the
+  repository. Read the complete issue or pull request discussion before acting.
+- Use short, imperative, lowercase commit subjects without prefixes. Commit bodies are empty unless
+  resolving an issue with one commit and no pull request; in that case, the body may contain only a
+  closing keyword such as `fixes #123`. Put the closing keyword in the pull request body when
+  opening a pull request.
+- Use a few descriptive lowercase words for branch names, without prefixes or issue references.
+- Keep pull request titles concise and lowercase except for proper nouns.
+- Write pull request bodies as readable, prose-first narratives with `## why` and `## what`. Add
+  `## details` only when it provides useful context. Keep formatting minimal and use bullets only
+  when they improve readability.
+- Use `## why` to explain why the change is needed and `## what` to describe how the change
+  addresses it. Do not include routine verification commands.
+- End the pull request body with a closing keyword such as `fixes #123` when it resolves an issue.
+- Use a heredoc with `gh pr create --body-file -` for multiline pull request bodies.
 - Releases remain tag based. Tags matching `v*.*.*` publish the container image and `latest` tag to
   GHCR.
-- Use `gh` for GitHub reads and actions. Read the complete issue or pull request discussion before
-  acting.
