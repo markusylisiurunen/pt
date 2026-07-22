@@ -130,26 +130,22 @@ const HomeRoute: React.FC = () => {
         </button>
       </div>
       {isHomeSectionVisible("nutrition") ? (
-        <>
-          <div className="intake">
-            <IntakeCard
-              heading="Kalorit"
-              current={dailyIntake.kcal}
-              target={dailyTarget.kcal}
-              unit="kcal"
-              maximumFractionDigits={0}
-            />
-            <IntakeCard
-              heading="Proteiini"
-              current={dailyIntake.protein}
-              target={dailyTarget.protein}
-              unit="g"
-              maximumFractionDigits={1}
-            />
-          </div>
-          <IntakeHistory target={dailyTarget.kcal} history={intakeHistory} />
-          <FoodLogEntries entries={foodLogToday} />
-        </>
+        <div className="intake">
+          <IntakeCard
+            heading="Kalorit"
+            current={dailyIntake.kcal}
+            target={dailyTarget.kcal}
+            unit="kcal"
+            maximumFractionDigits={0}
+          />
+          <IntakeCard
+            heading="Proteiini"
+            current={dailyIntake.protein}
+            target={dailyTarget.protein}
+            unit="g"
+            maximumFractionDigits={1}
+          />
+        </div>
       ) : null}
       {isHomeSectionVisible("weight") && targetWeightDate !== null ? (
         <WeightGraph
@@ -158,6 +154,12 @@ const HomeRoute: React.FC = () => {
           targetDate={targetWeightDate}
           targetWeight={targetWeightValue}
         />
+      ) : null}
+      {isHomeSectionVisible("nutrition") ? (
+        <>
+          <IntakeHistory target={dailyTarget.kcal} history={intakeHistory} />
+          <FoodLogEntries entries={foodLogToday} />
+        </>
       ) : null}
       {isHomeSectionVisible("training") ? (
         <Link to="/training-program">
