@@ -7,6 +7,37 @@
   padding-inline: 12px;
 }
 
+/* user switcher */
+.home-root > .users {
+  display: flex;
+  gap: 8px;
+  margin-block-end: 8px;
+  overflow-x: auto;
+}
+.home-root > .users button {
+  align-items: center;
+  appearance: none;
+  background: transparent;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border-muted);
+  color: var(--color-text);
+  cursor: pointer;
+  display: flex;
+  flex: 0 0 auto;
+  font-weight: 500;
+  height: 40px;
+  justify-content: center;
+  outline: none;
+  padding-inline: 12px;
+}
+.home-root > .users button.active {
+  border-color: var(--color-border-accent);
+}
+.home-root > .users button:last-child {
+  padding-inline: 0px;
+  width: 40px;
+}
+
 /* home header */
 .home-root > .header {
   display: flex;

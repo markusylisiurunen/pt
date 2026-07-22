@@ -6,6 +6,7 @@ import { migrateDocuments, migrateSchema } from "./db/migrate.ts";
 interface UserRuntime {
   db: DatabaseSync;
   agent: Agent;
+  name: string;
   password: string;
 }
 
@@ -83,6 +84,7 @@ function createUserRuntimes(options: UserRuntimeOptions): Map<string, UserRuntim
         runtimes.set(user.password, {
           db,
           agent: new Agent(options.anthropicApiKey, options.geminiApiKey, db),
+          name: user.name,
           password: user.password,
         });
       } catch (error) {

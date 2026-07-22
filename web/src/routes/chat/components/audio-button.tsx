@@ -1,5 +1,6 @@
 import { AudioLinesIcon } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
+import { authenticatedFetch } from "../../../auth";
 
 const MAX_RECORDING_TIME = 900;
 const MIN_RECORDING_TIME = 1;
@@ -99,12 +100,9 @@ async function transcribeAudio(audioBlob: Blob): Promise<string> {
 
   let response: Response;
   try {
-    response = await fetch("/api/transcribe", {
+    response = await authenticatedFetch("/api/transcribe", {
       method: "POST",
       body: formData,
-      headers: {
-        authorization: `Bearer ${window.localStorage.getItem("token")}`,
-      },
     });
   } catch {
     throw createTranscriptionError("Network error during transcription", "network");
