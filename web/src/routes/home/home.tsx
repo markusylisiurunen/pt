@@ -4,7 +4,7 @@ import { Link, useNavigate } from "react-router";
 import {
   activateUser,
   authenticatedFetch,
-  getActiveToken,
+  getPageToken,
   getSavedUsers,
   logout,
   type SavedUser,
@@ -20,7 +20,7 @@ const HomeRoute: React.FC = () => {
   const navigate = useNavigate();
   const now = useMemo(() => new Date().toISOString(), []);
   const users = useMemo(() => getSavedUsers(), []);
-  const activeToken = getActiveToken();
+  const pageToken = getPageToken();
 
   const [memories, setMemories] = useState<string[]>([]);
   const [dailyIntake, setDailyIntake] = useState({ kcal: 0, protein: 0 });
@@ -39,7 +39,7 @@ const HomeRoute: React.FC = () => {
   >([]);
 
   function handleSwitchUser(user: SavedUser) {
-    if (user.token === activeToken) return;
+    if (user.token === pageToken) return;
     activateUser(user);
     window.location.replace("/");
   }
@@ -102,7 +102,7 @@ const HomeRoute: React.FC = () => {
       <div className="users">
         {users.map((user) => (
           <button
-            className={user.token === activeToken ? "active" : undefined}
+            className={user.token === pageToken ? "active" : undefined}
             key={user.name}
             onClick={() => handleSwitchUser(user)}
           >

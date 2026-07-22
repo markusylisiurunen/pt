@@ -1,6 +1,6 @@
 import { ArrowRightIcon } from "lucide-react";
 import React, { useState } from "react";
-import { fetchUser, saveUser } from "../../auth";
+import { activateUser, fetchUser, rememberUser } from "../../auth";
 import "./login.css";
 
 const LoginRoute: React.FC = () => {
@@ -20,7 +20,8 @@ const LoginRoute: React.FC = () => {
         setError("Väärä salasana.");
         return;
       }
-      saveUser(user);
+      rememberUser(user);
+      activateUser(user);
       window.location.replace("/");
     } catch {
       setError("Kirjautuminen epäonnistui. Yritä uudelleen.");

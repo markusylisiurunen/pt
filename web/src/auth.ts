@@ -8,34 +8,42 @@ const TOKEN_KEY = "token";
 const pageToken = window.localStorage.getItem(TOKEN_KEY);
 
 function getActiveToken(): string | null {
+  return window.localStorage.getItem(TOKEN_KEY);
+}
+
+function getPageToken(): string | null {
   return pageToken;
+}
+
+function isSavedUser(value: unknown): value is SavedUser {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    "name" in value &&
+    typeof value.name === "string" &&
+    value.name.length > 0 &&
+    "token" in value &&
+    typeof value.token === "string" &&
+    value.token.length > 0
+  );
 }
 
 function getSavedUsers(): SavedUser[] {
   const value = window.localStorage.getItem(USERS_KEY);
   if (value === null) return [];
 
+  let users: unknown;
   try {
-    const users: unknown = JSON.parse(value);
-    if (
-      !Array.isArray(users) ||
-      !users.every(
-        (user) =>
-          typeof user === "object" &&
-          user !== null &&
-          "name" in user &&
-          typeof user.name === "string" &&
-          "token" in user &&
-          typeof user.token === "string",
-      )
-    ) {
-      throw new Error("Invalid saved users");
-    }
-    return users as SavedUser[];
+    users = JSON.parse(value);
   } catch {
     window.localStorage.removeItem(USERS_KEY);
     return [];
   }
+  if (!Array.isArray(users) || !users.every(isSavedUser)) {
+    window.localStorage.removeItem(USERS_KEY);
+    return [];
+  }
+  return users;
 }
 
 function setSavedUsers(users: SavedUser[]): void {
@@ -46,18 +54,14 @@ function setSavedUsers(users: SavedUser[]): void {
   }
 }
 
-function saveUser(user: SavedUser): void {
+function rememberUser(user: SavedUser): void {
   const users = getSavedUsers();
-  const index = users.findIndex(
-    (savedUser) => savedUser.name === user.name || savedUser.token === user.token,
-  );
-  if (index === -1) {
-    users.push(user);
-  } else {
-    users[index] = user;
-  }
-  setSavedUsers(users);
-  window.localStorage.setItem(TOKEN_KEY, user.token);
+  const matches = (savedUser: SavedUser) =>
+    savedUser.name === user.name || savedUser.token === user.token;
+  const index = users.findIndex(matches);
+  const nextUsers = users.filter((savedUser) => !matches(savedUser));
+  nextUsers.splice(index === -1 ? nextUsers.length : index, 0, user);
+  setSavedUsers(nextUsers);
 }
 
 function activateUser(user: SavedUser): void {
@@ -66,15 +70,15 @@ function activateUser(user: SavedUser): void {
 
 function forgetUser(token: string): void {
   setSavedUsers(getSavedUsers().filter((user) => user.token !== token));
-  if (window.localStorage.getItem(TOKEN_KEY) === token) {
+  if (getActiveToken() === token) {
     window.localStorage.removeItem(TOKEN_KEY);
   }
 }
 
 function logout(): boolean {
-  const token = getActiveToken();
-  const storedToken = window.localStorage.getItem(TOKEN_KEY);
-  if (token === null || storedToken !== token) return storedToken !== null;
+  const token = getPageToken();
+  const activeToken = getActiveToken();
+  if (token === null || activeToken !== token) return activeToken !== null;
 
   const users = getSavedUsers().filter((user) => user.token !== token);
   setSavedUsers(users);
@@ -98,7 +102,8 @@ async function fetchUser(token: string): Promise<SavedUser | null> {
     typeof data !== "object" ||
     data === null ||
     !("name" in data) ||
-    typeof data.name !== "string"
+    typeof data.name !== "string" ||
+    data.name.length === 0
   ) {
     throw new Error("Invalid user response");
   }
@@ -111,7 +116,7 @@ async function authenticatedFetch(input: RequestInfo | URL, init?: RequestInit):
   const headers = new Headers(init?.headers);
   headers.set("authorization", `Bearer ${pageToken}`);
   const response = await fetch(input, { ...init, headers });
-  if (response.status === 401 && window.localStorage.getItem(TOKEN_KEY) === pageToken) {
+  if (response.status === 401 && getActiveToken() === pageToken) {
     forgetUser(pageToken);
     window.location.replace("/login");
   }
@@ -124,8 +129,9 @@ export {
   fetchUser,
   forgetUser,
   getActiveToken,
+  getPageToken,
   getSavedUsers,
   logout,
-  saveUser,
+  rememberUser,
   type SavedUser,
 };
