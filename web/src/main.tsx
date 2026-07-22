@@ -4,6 +4,12 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router";
 import { App } from "./App";
+import { getActiveToken, getSavedUsers } from "./auth";
+import { applyThemeHue, DEFAULT_THEME_HUE } from "./theme";
+
+const activeToken = getActiveToken();
+const activeUser = getSavedUsers().find((user) => user.token === activeToken);
+applyThemeHue(activeUser?.themeHue ?? DEFAULT_THEME_HUE);
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {

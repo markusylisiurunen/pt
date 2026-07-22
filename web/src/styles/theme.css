@@ -1,14 +1,16 @@
 :root {
-  --color-bg-btn-primary: lch(97% 8 60);
-  --color-bg-btn-secondary: lch(97% 8 60 / 0.12);
-  --color-bg: lch(7.2% 2 60);
-  --color-border-accent: lch(92% 68 60);
-  --color-border-muted: lch(24% 4 60);
-  --color-border: lch(36% 4 60);
-  --color-text-on-bg-btn-primary: lch(7.2% 2 60);
-  --color-text-on-bg-btn-secondary: lch(94% 4 60);
-  --color-text-placeholder: lch(52% 4 60);
-  --color-text: lch(94% 4 60);
+  --theme-hue: 60;
+
+  --color-bg-btn-primary: lch(97% 8 var(--theme-hue));
+  --color-bg-btn-secondary: lch(97% 8 var(--theme-hue) / 0.12);
+  --color-bg: lch(7.2% 2 var(--theme-hue));
+  --color-border-accent: lch(92% 68 var(--theme-hue));
+  --color-border-muted: lch(24% 4 var(--theme-hue));
+  --color-border: lch(36% 4 var(--theme-hue));
+  --color-text-on-bg-btn-primary: lch(7.2% 2 var(--theme-hue));
+  --color-text-on-bg-btn-secondary: lch(94% 4 var(--theme-hue));
+  --color-text-placeholder: lch(52% 4 var(--theme-hue));
+  --color-text: lch(94% 4 var(--theme-hue));
 
   --radius-md: 5px;
   --radius-lg: 8px;

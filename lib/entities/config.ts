@@ -6,6 +6,7 @@ const Config = z.object({
   hiddenHomeSections: z.array(z.enum(["nutrition", "weight", "training", "memories"])).default(
     [],
   ),
+  themeHue: z.number().min(0).max(360).default(60),
   targetDailyIntakeCalories: z.number().min(0),
   targetDailyIntakeProtein: z.number().min(0),
   targetWeightDate: z.string().datetime(),
