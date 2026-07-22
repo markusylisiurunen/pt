@@ -5,6 +5,7 @@ import { docsRoute } from "./lib/routes/docs.ts";
 import { exportRoute } from "./lib/routes/export.ts";
 import { importRoute } from "./lib/routes/import.ts";
 import { transcribeRoute } from "./lib/routes/transcribe.ts";
+import { userRoute } from "./lib/routes/user.ts";
 import { authenticateUser, closeUserRuntimes, createUserRuntimes } from "./lib/user_runtimes.ts";
 
 const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY") ?? "";
@@ -26,6 +27,7 @@ const docsPattern = new URLPattern({ pathname: "/api/docs/:slug" });
 const exportPattern = new URLPattern({ pathname: "/api/export" });
 const importPattern = new URLPattern({ pathname: "/api/import" });
 const transcribePattern = new URLPattern({ pathname: "/api/transcribe" });
+const userPattern = new URLPattern({ pathname: "/api/user" });
 
 export default {
   async fetch(req) {
@@ -61,6 +63,9 @@ export default {
 
     const transcribeMatch = transcribePattern.exec(url);
     if (transcribeMatch) return transcribeRoute(runtime.db, GEMINI_API_KEY)(req);
+
+    const userMatch = userPattern.exec(url);
+    if (userMatch) return userRoute(runtime.name)(req);
 
     return new Response("Not found", { status: 404 });
   },

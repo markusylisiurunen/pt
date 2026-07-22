@@ -1,6 +1,7 @@
 import { ArrowUpIcon, ChevronLeftIcon, ImageIcon, LoaderCircleIcon, XIcon } from "lucide-react";
 import React, { useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router";
+import { authenticatedFetch } from "../../auth";
 import { getSafeAreaInsets } from "../../util/safe-area";
 import "./chat.css";
 import {
@@ -90,11 +91,9 @@ const ChatRoute: React.FC = () => {
     }, 0);
 
     try {
-      const token = localStorage.getItem("token");
-      const response = await fetch(`/api/chats/${id}`, {
+      const response = await authenticatedFetch(`/api/chats/${id}`, {
         method: "POST",
         headers: {
-          authorization: `Bearer ${token}`,
           "content-type": "application/json",
         },
         body: JSON.stringify({

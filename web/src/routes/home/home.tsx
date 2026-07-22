@@ -1,6 +1,14 @@
-import { ArrowRightIcon } from "lucide-react";
+import { ArrowRightIcon, PlusIcon } from "lucide-react";
 import React, { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router";
+import {
+  activateUser,
+  authenticatedFetch,
+  getPageToken,
+  getSavedUsers,
+  logout,
+  type SavedUser,
+} from "../../auth";
 import { FoodLogEntries } from "./components/food-log-entries";
 import { IntakeCard } from "./components/intake-card";
 import { IntakeHistory } from "./components/intake-history";
@@ -11,6 +19,8 @@ import "./home.css";
 const HomeRoute: React.FC = () => {
   const navigate = useNavigate();
   const now = useMemo(() => new Date().toISOString(), []);
+  const users = useMemo(() => getSavedUsers(), []);
+  const pageToken = getPageToken();
 
   const [memories, setMemories] = useState<string[]>([]);
   const [dailyIntake, setDailyIntake] = useState({ kcal: 0, protein: 0 });
@@ -28,18 +38,19 @@ const HomeRoute: React.FC = () => {
     }[]
   >([]);
 
+  function handleSwitchUser(user: SavedUser) {
+    if (user.token === pageToken) return;
+    activateUser(user);
+    window.location.replace("/");
+  }
+
   function handleLogout() {
-    window.localStorage.removeItem("token");
-    navigate("/login", { replace: true });
+    window.location.replace(logout() ? "/" : "/login");
   }
 
   useEffect(() => {
     void Promise.resolve().then(async () => {
-      const resp = await fetch("/api/config", {
-        headers: {
-          authorization: `Bearer ${window.localStorage.getItem("token")}`,
-        },
-      });
+      const resp = await authenticatedFetch("/api/config");
       if (resp.ok) {
         const data = (await resp.json()) as {
           config: {
@@ -88,6 +99,20 @@ const HomeRoute: React.FC = () => {
 
   return (
     <div className="home-root">
+      <div className="users">
+        {users.map((user) => (
+          <button
+            className={user.token === pageToken ? "active" : undefined}
+            key={user.name}
+            onClick={() => handleSwitchUser(user)}
+          >
+            {user.name}
+          </button>
+        ))}
+        <button aria-label="Lisää käyttäjä" onClick={() => navigate("/login")}>
+          <PlusIcon size={20} strokeWidth={2.25} />
+        </button>
+      </div>
       <div className="header">
         <button onClick={handleLogout}>Poistu</button>
         <button onClick={() => navigate(`/chats/${crypto.randomUUID()}`)}>

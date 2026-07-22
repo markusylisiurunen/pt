@@ -1,34 +1,56 @@
 import { ArrowRightIcon } from "lucide-react";
 import React, { useState } from "react";
-import { useNavigate } from "react-router";
+import { activateUser, fetchUser, rememberUser } from "../../auth";
 import "./login.css";
 
 const LoginRoute: React.FC = () => {
-  const navigate = useNavigate();
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
-  function handleLogin() {
-    if (password.trim().length === 0) return;
-    window.localStorage.setItem("token", password);
-    navigate("/", { replace: true });
+  async function handleLogin(event: React.FormEvent) {
+    event.preventDefault();
+    if (password.length === 0 || submitting) return;
+
+    setError("");
+    setSubmitting(true);
+    try {
+      const user = await fetchUser(password);
+      if (user === null) {
+        setError("Väärä salasana.");
+        return;
+      }
+      rememberUser(user);
+      activateUser(user);
+      window.location.replace("/");
+    } catch {
+      setError("Kirjautuminen epäonnistui. Yritä uudelleen.");
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   return (
     <div className="login-root">
       <div className="spacer" />
-      <div className="form">
+      <form className="form" onSubmit={handleLogin}>
         <h1>Kirjaudu sisään</h1>
         <input
+          autoFocus
           type="password"
           placeholder="Salasana"
           value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          onChange={(event) => {
+            setPassword(event.target.value);
+            setError("");
+          }}
         />
-        <button onClick={handleLogin}>
+        {error ? <div className="error">{error}</div> : null}
+        <button type="submit" disabled={submitting}>
           <span>Kirjaudu</span>
           <ArrowRightIcon size={20} strokeWidth={2.25} />
         </button>
-      </div>
+      </form>
     </div>
   );
 };

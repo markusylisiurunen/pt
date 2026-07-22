@@ -18,6 +18,8 @@ Deno.test("routes passwords to isolated user databases", async () => {
     const bob = authenticateUser(runtimes, "Bearer bob-password");
     assert.ok(alice);
     assert.ok(bob);
+    assert.equal(alice.name, "alice");
+    assert.equal(bob.name, "bob");
     assert.notStrictEqual(alice.db, bob.db);
     assert.equal(authenticateUser(runtimes, "Bearer unknown"), undefined);
 

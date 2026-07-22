@@ -2,6 +2,7 @@ import { ChevronLeftIcon } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import Markdown from "react-markdown";
 import { useNavigate } from "react-router";
+import { authenticatedFetch } from "../../auth";
 import "./training-program.css";
 
 const TrainingProgramRoute: React.FC = () => {
@@ -10,11 +11,7 @@ const TrainingProgramRoute: React.FC = () => {
 
   useEffect(() => {
     void Promise.resolve().then(async () => {
-      const resp = await fetch("/api/docs/training-program", {
-        headers: {
-          authorization: `Bearer ${window.localStorage.getItem("token")}`,
-        },
-      });
+      const resp = await authenticatedFetch("/api/docs/training-program");
       if (resp.ok) {
         const data = await resp.text();
         setContent(data);
