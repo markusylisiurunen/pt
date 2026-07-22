@@ -65,7 +65,7 @@ export default {
     if (transcribeMatch) return transcribeRoute(runtime.db, GEMINI_API_KEY)(req);
 
     const userMatch = userPattern.exec(url);
-    if (userMatch) return userRoute(runtime.name)(req);
+    if (userMatch) return userRoute(runtime.db, runtime.name)(req);
 
     return new Response("Not found", { status: 404 });
   },

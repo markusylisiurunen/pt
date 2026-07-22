@@ -11,6 +11,7 @@ import { ChatRoute } from "./routes/chat/chat";
 import { HomeRoute } from "./routes/home/home";
 import { LoginRoute } from "./routes/login/login";
 import { TrainingProgramRoute } from "./routes/training-program/training-program";
+import { applyThemeHue } from "./theme";
 
 const AuthGuard: React.FC = () => {
   const token = getPageToken();
@@ -39,6 +40,7 @@ const AuthGuard: React.FC = () => {
           setAuthenticated(false);
           return;
         }
+        applyThemeHue(user.themeHue);
         rememberUser(user);
         setAuthenticated(true);
       })

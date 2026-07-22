@@ -1,6 +1,9 @@
+import { DEFAULT_THEME_HUE, isThemeHue } from "./theme";
+
 interface SavedUser {
   name: string;
   token: string;
+  themeHue: number;
 }
 
 const USERS_KEY = "users";
@@ -15,17 +18,23 @@ function getPageToken(): string | null {
   return pageToken;
 }
 
-function isSavedUser(value: unknown): value is SavedUser {
-  return (
-    typeof value === "object" &&
-    value !== null &&
-    "name" in value &&
-    typeof value.name === "string" &&
-    value.name.length > 0 &&
-    "token" in value &&
-    typeof value.token === "string" &&
-    value.token.length > 0
-  );
+function parseSavedUser(value: unknown): SavedUser | null {
+  if (
+    typeof value !== "object" ||
+    value === null ||
+    !("name" in value) ||
+    typeof value.name !== "string" ||
+    value.name.length === 0 ||
+    !("token" in value) ||
+    typeof value.token !== "string" ||
+    value.token.length === 0
+  ) {
+    return null;
+  }
+
+  const themeHue = "themeHue" in value ? value.themeHue : DEFAULT_THEME_HUE;
+  if (!isThemeHue(themeHue)) return null;
+  return { name: value.name, token: value.token, themeHue };
 }
 
 function getSavedUsers(): SavedUser[] {
@@ -39,11 +48,21 @@ function getSavedUsers(): SavedUser[] {
     window.localStorage.removeItem(USERS_KEY);
     return [];
   }
-  if (!Array.isArray(users) || !users.every(isSavedUser)) {
+  if (!Array.isArray(users)) {
     window.localStorage.removeItem(USERS_KEY);
     return [];
   }
-  return users;
+
+  const savedUsers: SavedUser[] = [];
+  for (const value of users) {
+    const user = parseSavedUser(value);
+    if (user === null) {
+      window.localStorage.removeItem(USERS_KEY);
+      return [];
+    }
+    savedUsers.push(user);
+  }
+  return savedUsers;
 }
 
 function setSavedUsers(users: SavedUser[]): void {
@@ -103,11 +122,13 @@ async function fetchUser(token: string): Promise<SavedUser | null> {
     data === null ||
     !("name" in data) ||
     typeof data.name !== "string" ||
-    data.name.length === 0
+    data.name.length === 0 ||
+    !("themeHue" in data) ||
+    !isThemeHue(data.themeHue)
   ) {
     throw new Error("Invalid user response");
   }
-  return { name: data.name, token };
+  return { name: data.name, token, themeHue: data.themeHue };
 }
 
 async function authenticatedFetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
