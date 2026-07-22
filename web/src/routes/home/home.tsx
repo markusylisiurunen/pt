@@ -16,12 +16,15 @@ import { Memories } from "./components/memories";
 import { WeightGraph } from "./components/weight-graph";
 import "./home.css";
 
+type HomeSection = "nutrition" | "weight" | "training" | "memories";
+
 const HomeRoute: React.FC = () => {
   const navigate = useNavigate();
   const now = useMemo(() => new Date().toISOString(), []);
   const users = useMemo(() => getSavedUsers(), []);
   const pageToken = getPageToken();
 
+  const [hiddenHomeSections, setHiddenHomeSections] = useState<HomeSection[] | null>(null);
   const [memories, setMemories] = useState<string[]>([]);
   const [dailyIntake, setDailyIntake] = useState({ kcal: 0, protein: 0 });
   const [dailyTarget, setDailyTarget] = useState({ kcal: 0, protein: 0 });
@@ -37,6 +40,10 @@ const HomeRoute: React.FC = () => {
       protein: number;
     }[]
   >([]);
+
+  function isHomeSectionVisible(section: HomeSection) {
+    return hiddenHomeSections !== null && !hiddenHomeSections.includes(section);
+  }
 
   function handleSwitchUser(user: SavedUser) {
     if (user.token === pageToken) return;
@@ -55,6 +62,7 @@ const HomeRoute: React.FC = () => {
         const data = (await resp.json()) as {
           config: {
             memoryEntries: string[];
+            hiddenHomeSections: HomeSection[];
             targetDailyIntakeCalories: number;
             targetDailyIntakeProtein: number;
             targetWeightDate: string;
@@ -79,6 +87,7 @@ const HomeRoute: React.FC = () => {
             protein: number;
           }[];
         };
+        setHiddenHomeSections(data.config.hiddenHomeSections);
         setMemories(data.config.memoryEntries.reverse());
         setDailyIntake({
           kcal: data.foodIntakeToday.kcal,
@@ -120,23 +129,29 @@ const HomeRoute: React.FC = () => {
           <ArrowRightIcon size={20} strokeWidth={2.25} />
         </button>
       </div>
-      <div className="intake">
-        <IntakeCard
-          heading="Kalorit"
-          current={dailyIntake.kcal}
-          target={dailyTarget.kcal}
-          unit="kcal"
-          maximumFractionDigits={0}
-        />
-        <IntakeCard
-          heading="Proteiini"
-          current={dailyIntake.protein}
-          target={dailyTarget.protein}
-          unit="g"
-          maximumFractionDigits={1}
-        />
-      </div>
-      {targetWeightDate !== null ? (
+      {isHomeSectionVisible("nutrition") ? (
+        <>
+          <div className="intake">
+            <IntakeCard
+              heading="Kalorit"
+              current={dailyIntake.kcal}
+              target={dailyTarget.kcal}
+              unit="kcal"
+              maximumFractionDigits={0}
+            />
+            <IntakeCard
+              heading="Proteiini"
+              current={dailyIntake.protein}
+              target={dailyTarget.protein}
+              unit="g"
+              maximumFractionDigits={1}
+            />
+          </div>
+          <IntakeHistory target={dailyTarget.kcal} history={intakeHistory} />
+          <FoodLogEntries entries={foodLogToday} />
+        </>
+      ) : null}
+      {isHomeSectionVisible("weight") && targetWeightDate !== null ? (
         <WeightGraph
           now={now}
           history={weightHistory}
@@ -144,13 +159,15 @@ const HomeRoute: React.FC = () => {
           targetWeight={targetWeightValue}
         />
       ) : null}
-      <IntakeHistory target={dailyTarget.kcal} history={intakeHistory} />
-      <FoodLogEntries entries={foodLogToday} />
-      <Link to="/training-program">
-        <span>Treeniohjelma</span>
-        <ArrowRightIcon size={20} strokeWidth={2} />
-      </Link>
-      <Memories memories={memories} />
+      {isHomeSectionVisible("training") ? (
+        <Link to="/training-program">
+          <span>Treeniohjelma</span>
+          <ArrowRightIcon size={20} strokeWidth={2} />
+        </Link>
+      ) : null}
+      {isHomeSectionVisible("memories") ? (
+        <Memories memories={memories} />
+      ) : null}
     </div>
   );
 };
