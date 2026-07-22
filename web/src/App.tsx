@@ -11,12 +11,27 @@ const AuthGuard: React.FC = () => {
   const [authenticated, setAuthenticated] = useState<boolean | null>(token === null ? false : null);
 
   useEffect(() => {
+    function handleStorage(event: StorageEvent) {
+      if (
+        event.storageArea !== window.localStorage ||
+        (event.key !== "token" && event.key !== null)
+      ) {
+        return;
+      }
+      window.location.replace(event.newValue === null ? "/login" : "/");
+    }
+
+    window.addEventListener("storage", handleStorage);
+    return () => window.removeEventListener("storage", handleStorage);
+  }, []);
+
+  useEffect(() => {
     if (token === null) return;
 
     let cancelled = false;
     void fetchUser(token)
       .then((user) => {
-        if (cancelled) return;
+        if (cancelled || window.localStorage.getItem("token") !== token) return;
         if (user === null) {
           forgetUser(token);
           setAuthenticated(false);
@@ -26,7 +41,9 @@ const AuthGuard: React.FC = () => {
         setAuthenticated(true);
       })
       .catch(() => {
-        if (!cancelled) setAuthenticated(true);
+        if (!cancelled && window.localStorage.getItem("token") === token) {
+          setAuthenticated(true);
+        }
       });
     return () => {
       cancelled = true;

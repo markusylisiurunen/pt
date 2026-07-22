@@ -1,11 +1,9 @@
 import { ArrowRightIcon } from "lucide-react";
 import React, { useState } from "react";
-import { useNavigate } from "react-router";
 import { fetchUser, saveUser } from "../../auth";
 import "./login.css";
 
 const LoginRoute: React.FC = () => {
-  const navigate = useNavigate();
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -23,7 +21,7 @@ const LoginRoute: React.FC = () => {
         return;
       }
       saveUser(user);
-      navigate("/", { replace: true });
+      window.location.replace("/");
     } catch {
       setError("Kirjautuminen epäonnistui. Yritä uudelleen.");
     } finally {

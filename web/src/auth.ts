@@ -5,9 +5,10 @@ interface SavedUser {
 
 const USERS_KEY = "users";
 const TOKEN_KEY = "token";
+const pageToken = window.localStorage.getItem(TOKEN_KEY);
 
 function getActiveToken(): string | null {
-  return window.localStorage.getItem(TOKEN_KEY);
+  return pageToken;
 }
 
 function getSavedUsers(): SavedUser[] {
@@ -65,14 +66,15 @@ function activateUser(user: SavedUser): void {
 
 function forgetUser(token: string): void {
   setSavedUsers(getSavedUsers().filter((user) => user.token !== token));
-  if (getActiveToken() === token) {
+  if (window.localStorage.getItem(TOKEN_KEY) === token) {
     window.localStorage.removeItem(TOKEN_KEY);
   }
 }
 
 function logout(): boolean {
   const token = getActiveToken();
-  if (token === null) return false;
+  const storedToken = window.localStorage.getItem(TOKEN_KEY);
+  if (token === null || storedToken !== token) return storedToken !== null;
 
   const users = getSavedUsers().filter((user) => user.token !== token);
   setSavedUsers(users);
@@ -104,14 +106,13 @@ async function fetchUser(token: string): Promise<SavedUser | null> {
 }
 
 async function authenticatedFetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
-  const token = getActiveToken();
-  if (token === null) throw new Error("Not authenticated");
+  if (pageToken === null) throw new Error("Not authenticated");
 
   const headers = new Headers(init?.headers);
-  headers.set("authorization", `Bearer ${token}`);
+  headers.set("authorization", `Bearer ${pageToken}`);
   const response = await fetch(input, { ...init, headers });
-  if (response.status === 401 && getActiveToken() === token) {
-    forgetUser(token);
+  if (response.status === 401 && window.localStorage.getItem(TOKEN_KEY) === pageToken) {
+    forgetUser(pageToken);
     window.location.replace("/login");
   }
   return response;
