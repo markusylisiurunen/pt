@@ -47,6 +47,7 @@ function migrateDocuments(db: DatabaseSync) {
   const defaultConfig: Config = {
     userInfo: null,
     memoryEntries: [],
+    hiddenHomeSections: [],
     targetDailyIntakeCalories: 1800,
     targetDailyIntakeProtein: 160,
     targetWeightDate: inThreeMonths.toISOString(),
