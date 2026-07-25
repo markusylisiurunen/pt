@@ -1,4 +1,4 @@
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenAI, ThinkingLevel } from "@google/genai";
 import { Buffer } from "node:buffer";
 import { DatabaseSync } from "node:sqlite";
 import { z } from "zod";
@@ -46,7 +46,7 @@ async function transcribeAudio(
   const base64Data = Buffer.from(uint8Array).toString("base64");
   // send the audio file to Gemini for transcription
   const response = await ai.models.generateContent({
-    model: "gemini-3-flash-preview",
+    model: "gemini-3.6-flash",
     contents: [
       {
         text: transcribeAudioPrompt.replaceAll(
@@ -63,7 +63,7 @@ async function transcribeAudio(
     config: {
       maxOutputTokens: 4096,
       responseMimeType: "application/json",
-      thinkingConfig: { thinkingBudget: 0 },
+      thinkingConfig: { thinkingLevel: ThinkingLevel.MINIMAL },
     },
   });
   // parse the response
