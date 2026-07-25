@@ -13,6 +13,7 @@ import { FoodLogEntries } from "./components/food-log-entries";
 import { IntakeCard } from "./components/intake-card";
 import { IntakeHistory } from "./components/intake-history";
 import { Memories } from "./components/memories";
+import { WeightForm } from "./components/weight-form";
 import { WeightGraph } from "./components/weight-graph";
 import "./home.css";
 
@@ -20,7 +21,7 @@ type HomeSection = "nutrition" | "weight" | "training" | "memories";
 
 const HomeRoute: React.FC = () => {
   const navigate = useNavigate();
-  const now = useMemo(() => new Date().toISOString(), []);
+  const [now, setNow] = useState(() => new Date().toISOString());
   const users = useMemo(() => getSavedUsers(), []);
   const pageToken = getPageToken();
 
@@ -53,6 +54,15 @@ const HomeRoute: React.FC = () => {
 
   function handleLogout() {
     window.location.replace(logout() ? "/" : "/login");
+  }
+
+  function handleWeightSaved(entry: { date: string; weight: number }) {
+    setWeightHistory((history) =>
+      [...history.filter((item) => item.date !== entry.date), entry].sort((a, b) =>
+        a.date.localeCompare(b.date),
+      ),
+    );
+    setNow(new Date().toISOString());
   }
 
   useEffect(() => {
@@ -148,12 +158,15 @@ const HomeRoute: React.FC = () => {
         </div>
       ) : null}
       {isHomeSectionVisible("weight") && targetWeightDate !== null ? (
-        <WeightGraph
-          now={now}
-          history={weightHistory}
-          targetDate={targetWeightDate}
-          targetWeight={targetWeightValue}
-        />
+        <>
+          <WeightForm onSaved={handleWeightSaved} />
+          <WeightGraph
+            now={now}
+            history={weightHistory}
+            targetDate={targetWeightDate}
+            targetWeight={targetWeightValue}
+          />
+        </>
       ) : null}
       {isHomeSectionVisible("nutrition") ? (
         <>
