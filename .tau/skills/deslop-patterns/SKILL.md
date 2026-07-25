@@ -5,7 +5,7 @@ description: "Apply PT-specific compatibility, contract ownership, and regressio
 
 # PT deslop patterns
 
-Use these patterns alongside `deslop`. Treat `AGENTS.md` as the source of truth for repository policy, architecture, conventions, and verification.
+Use these patterns alongside `deslop`.
 
 ## Compatibility boundaries
 
@@ -13,11 +13,10 @@ The SQLite database and import/export documents contain real local user data. Pr
 
 ## Contract ownership
 
-Apply the ownership boundaries in `AGENTS.md` when choosing the canonical representation and validation point:
-
 - HTTP routes own validation and normalization of request input. Internal code should consume the resulting trusted shape.
 - Database code owns schemas, persisted documents, and ordered migrations. Keep persistence changes explicit rather than hiding compatibility in downstream fallbacks.
-- Shared domain entities should not drift into subtly different route, agent-tool, or frontend types. Use an explicit boundary transformation when representations genuinely differ.
+- Shared domain entities own canonical domain representations. Collapse identical declarations in routes, agent tools, and the frontend into the owned type. Keep a boundary-specific type only when its semantics differ, and make the transformation explicit.
+- Derive display and transport values from canonical entity or document state when reliable instead of plumbing redundant copies through storage, routes, tools, and components.
 - Agent tool contracts, persisted documents, and model prompts describe overlapping concepts and must move together when food, memory, or chat shapes change.
 - React components should not become an alternative owner of backend domain truth.
 
