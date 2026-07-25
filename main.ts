@@ -6,6 +6,7 @@ import { exportRoute } from "./lib/routes/export.ts";
 import { importRoute } from "./lib/routes/import.ts";
 import { transcribeRoute } from "./lib/routes/transcribe.ts";
 import { userRoute } from "./lib/routes/user.ts";
+import { weightRoute } from "./lib/routes/weight.ts";
 import { authenticateUser, closeUserRuntimes, createUserRuntimes } from "./lib/user_runtimes.ts";
 
 const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY") ?? "";
@@ -28,6 +29,7 @@ const exportPattern = new URLPattern({ pathname: "/api/export" });
 const importPattern = new URLPattern({ pathname: "/api/import" });
 const transcribePattern = new URLPattern({ pathname: "/api/transcribe" });
 const userPattern = new URLPattern({ pathname: "/api/user" });
+const weightPattern = new URLPattern({ pathname: "/api/weight" });
 
 export default {
   async fetch(req) {
@@ -66,6 +68,9 @@ export default {
 
     const userMatch = userPattern.exec(url);
     if (userMatch) return userRoute(runtime.db, runtime.name)(req);
+
+    const weightMatch = weightPattern.exec(url);
+    if (weightMatch) return weightRoute(runtime.db)(req);
 
     return new Response("Not found", { status: 404 });
   },

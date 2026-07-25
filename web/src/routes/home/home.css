@@ -168,6 +168,61 @@
   outline: none;
 }
 
+/* weight form */
+.home-root .weight-form {
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border-muted);
+  margin-block-end: 12px;
+  padding: 12px;
+}
+.home-root .weight-form label {
+  display: block;
+  font-family: "GeistMono", monospace;
+  font-size: calc(15 / 16 * 1rem);
+  font-weight: 425;
+  letter-spacing: -0.04em;
+  margin-block-end: 12px;
+}
+.home-root .weight-form .fields {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: minmax(0px, 1fr) max-content;
+}
+.home-root .weight-form input,
+.home-root .weight-form button {
+  appearance: none;
+  border-radius: var(--radius-md);
+  height: 40px;
+  outline: none;
+}
+.home-root .weight-form input {
+  background: transparent;
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+  min-width: 0px;
+  padding-inline: 12px;
+}
+.home-root .weight-form input::placeholder {
+  color: var(--color-text-placeholder);
+}
+.home-root .weight-form button {
+  background: var(--color-bg-btn-primary);
+  border: none;
+  color: var(--color-text-on-bg-btn-primary);
+  cursor: pointer;
+  font-weight: 500;
+  padding-inline: 12px;
+}
+.home-root .weight-form button:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+.home-root .weight-form .error {
+  color: var(--color-border-accent);
+  font-size: calc(14 / 16 * 1rem);
+  margin-block-start: 8px;
+}
+
 /* weight graph */
 .home-root .weight-graph {
   border-radius: var(--radius-lg);
