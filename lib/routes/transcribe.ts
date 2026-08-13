@@ -63,7 +63,7 @@ async function transcribeAudio(
     config: {
       maxOutputTokens: 4096,
       responseMimeType: "application/json",
-      thinkingConfig: { thinkingLevel: ThinkingLevel.MINIMAL },
+      thinkingConfig: { thinkingLevel: ThinkingLevel.LOW },
     },
   });
   // parse the response
