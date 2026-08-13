@@ -1,5 +1,5 @@
 import Anthropic from "@anthropic-ai/sdk";
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenAI, ThinkingLevel } from "@google/genai";
 import z from "zod";
 
 const fineliSchema = z.array(
@@ -134,11 +134,11 @@ ${formatBatchForPrompt(batch)}
   const ai = new GoogleGenAI({ apiKey: geminiApiKey });
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
+      model: "gemini-3.7-flash",
       contents: prompt,
       config: {
         maxOutputTokens: 4096,
-        thinkingConfig: { thinkingBudget: 0 },
+        thinkingConfig: { thinkingLevel: ThinkingLevel.MINIMAL },
       },
     });
     return response.text?.trim() ?? "Ei osumia.";
