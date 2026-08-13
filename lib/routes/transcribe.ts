@@ -46,7 +46,7 @@ async function transcribeAudio(
   const base64Data = Buffer.from(uint8Array).toString("base64");
   // send the audio file to Gemini for transcription
   const response = await ai.models.generateContent({
-    model: "gemini-3.6-flash",
+    model: "gemini-3.7-flash",
     contents: [
       {
         text: transcribeAudioPrompt.replaceAll(
