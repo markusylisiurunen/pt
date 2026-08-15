@@ -15,7 +15,7 @@
     "jsr:@std/streams@^1.0.9": "1.1.1",
     "jsr:@std/streams@^1.1.1": "1.1.1",
     "npm:@anthropic-ai/sdk@~0.112.3": "0.112.3_zod@4.3.5_zod@4.4.3",
-    "npm:@google/genai@^1.52.0": "1.52.0",
+    "npm:@google/genai@^2.16.0": "2.16.0",
     "npm:pyodide@~0.29.4": "0.29.4",
     "npm:zod@^4.4.3": "4.4.3"
   },
@@ -90,8 +90,8 @@
     "@babel/runtime@7.29.7": {
       "integrity": "sha512-Nq8OhGWiZIZGV6hLHoyAKLLcJihP/xFeBMGJoUrxTX2psI8dCifzLhZISFb+VWS3wFMRDmCGw5R+dOySCqPLhw=="
     },
-    "@google/genai@1.52.0": {
-      "integrity": "sha512-gwSvbpiN/17O9TbsqSsE/OzZcpv5Fo4RQjdngGgogtuB9RsyJ8ZHhX5KjHj1bp5N9snN2eK8LDGXSaWW2hof8Q==",
+    "@google/genai@2.16.0": {
+      "integrity": "sha512-K+1C1sqR0u7NJ5xpKJCQBws0QXpfuklo3WTNuUIMvtbQfNW2O5OohX0BYT2V+PXzsUzQEwGCXPWQxttLyGQ6xw==",
       "dependencies": [
         "google-auth-library",
         "p-retry",
@@ -339,7 +339,7 @@
       "jsr:@std/csv@^1.0.6",
       "jsr:@std/http@^1.1.2",
       "npm:@anthropic-ai/sdk@~0.112.3",
-      "npm:@google/genai@^1.52.0",
+      "npm:@google/genai@^2.16.0",
       "npm:pyodide@~0.29.4",
       "npm:zod@^4.4.3"
     ]
