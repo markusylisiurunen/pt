@@ -75,6 +75,11 @@ frontend. There is no automated test suite; do not add low-value tests merely fo
 Keep `README.md`, `.env.example`, and this file aligned when changing setup, environment variables,
 architecture, verification, or releases. Keep the README concise.
 
+## Subagents
+
+When the user requests a GPT-6.1 Sol subagent without specifying a reasoning effort, use
+`openai-codex/gpt-6.1-sol:medium`. Preserve an explicitly requested reasoning effort.
+
 ## Git and GitHub
 
 - Use `gh` for GitHub operations and omit `--repo` when the current checkout identifies the
