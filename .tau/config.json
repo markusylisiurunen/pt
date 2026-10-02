@@ -1,5 +1,5 @@
 {
-  "defaultPersona": "gpt-6.1-sol-chatgpt-coder:high",
+  "defaultPersona": "gpt-6.1-sol-chatgpt-coder:medium",
   "subagents": {
     "launchModels": [
       "openai-codex/gpt-6.1-sol:medium",
