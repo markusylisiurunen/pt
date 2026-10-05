@@ -11,7 +11,7 @@
   },
   "imports": {
     "@anthropic-ai/sdk": "npm:@anthropic-ai/sdk@^0.112.3",
-    "@google/genai": "npm:@google/genai@^1.52.0",
+    "@google/genai": "npm:@google/genai@^2.16.0",
     "@std/csv": "jsr:@std/csv@^1.0.6",
     "@std/http": "jsr:@std/http@^1.1.2",
     "pyodide": "npm:pyodide@^0.29.4",
