@@ -2,23 +2,23 @@
   "version": "5",
   "specifiers": {
     "jsr:@std/bytes@^1.0.6": "1.0.6",
-    "jsr:@std/cli@^1.0.31": "1.0.32",
+    "jsr:@std/cli@^1.0.32": "1.0.32",
     "jsr:@std/csv@^1.0.6": "1.0.6",
     "jsr:@std/encoding@^1.0.11": "1.0.11",
     "jsr:@std/fmt@^1.0.10": "1.0.10",
     "jsr:@std/fs@^1.0.24": "1.0.24",
     "jsr:@std/html@^1.0.7": "1.0.7",
-    "jsr:@std/http@^1.1.2": "1.1.2",
+    "jsr:@std/http@^1.1.4": "1.1.4",
     "jsr:@std/internal@^1.0.14": "1.0.14",
     "jsr:@std/media-types@^1.1.0": "1.1.0",
-    "jsr:@std/net@^1.0.6": "1.0.6",
+    "jsr:@std/net@^1.0.7": "1.0.7",
     "jsr:@std/path@^1.1.6": "1.1.6",
-    "jsr:@std/streams@^1.0.9": "1.1.1",
-    "jsr:@std/streams@^1.1.1": "1.1.1",
-    "npm:@anthropic-ai/sdk@^1.6.0": "1.6.0_zod@4.4.3",
+    "jsr:@std/streams@^1.0.9": "1.2.0",
+    "jsr:@std/streams@^1.2.0": "1.2.0",
+    "npm:@anthropic-ai/sdk@^1.6.0": "1.6.0_zod@4.6.7",
     "npm:@google/genai@3": "3.0.0",
-    "npm:pyodide@~0.29.4": "0.29.4",
-    "npm:zod@^4.4.3": "4.4.3"
+    "npm:pyodide@^314.0.7": "314.0.7",
+    "npm:zod@^4.6.7": "4.6.7"
   },
   "jsr": {
     "@std/bytes@1.0.6": {
@@ -45,8 +45,8 @@
     "@std/html@1.0.7": {
       "integrity": "175c818905a6e75743c69c251395e273d82698e58cfe7dd76268d70e28b8d8fe"
     },
-    "@std/http@1.1.2": {
-      "integrity": "1c0473590d5e5b75b30b2be4833c08047dd799aeea35624fd34ec58d67fc9240",
+    "@std/http@1.1.4": {
+      "integrity": "4f1575226ca7c0df1df38b26d50265fed30869b2a63ab867edc5b92492150c8c",
       "dependencies": [
         "jsr:@std/cli",
         "jsr:@std/encoding",
@@ -56,7 +56,7 @@
         "jsr:@std/media-types",
         "jsr:@std/net",
         "jsr:@std/path",
-        "jsr:@std/streams@^1.1.1"
+        "jsr:@std/streams@^1.2.0"
       ]
     },
     "@std/internal@1.0.14": {
@@ -65,8 +65,8 @@
     "@std/media-types@1.1.0": {
       "integrity": "c9d093f0c05c3512932b330e3cc1fe1d627b301db33a4c2c2185c02471d6eaa4"
     },
-    "@std/net@1.0.6": {
-      "integrity": "110735f93e95bb9feb95790a8b1d1bf69ec0dc74f3f97a00a76ea5efea25500c"
+    "@std/net@1.0.7": {
+      "integrity": "e0b995738cfe2ed56f64591d400e55f143cff164efd690343f2deb4cf4d06d86"
     },
     "@std/path@1.1.6": {
       "integrity": "c68485c2a4dfbb5ae3cc74fae4e8c4e5d874cf8a8ed12927917235c758b46cbe",
@@ -74,15 +74,15 @@
         "jsr:@std/internal"
       ]
     },
-    "@std/streams@1.1.1": {
-      "integrity": "92556d350e537e9dce527a6d08f6f15be3ff65e656079dea69d15252187c7613",
+    "@std/streams@1.2.0": {
+      "integrity": "256b934254778f2bf45f5713b934209ff29e9b4b7fd4ec095219966813758c5f",
       "dependencies": [
         "jsr:@std/bytes"
       ]
     }
   },
   "npm": {
-    "@anthropic-ai/sdk@1.6.0_zod@4.4.3": {
+    "@anthropic-ai/sdk@1.6.0_zod@4.6.7": {
       "integrity": "sha512-XqiO/46n8S6So8jQ/6/uNCkHntyW6QHHs1gZ+hlwTx1fWDr929g4VmwIXfdMVk7SuBWNdQvAlwyi1G3t6SEIuQ==",
       "dependencies": [
         "@opentelemetry/api",
@@ -143,8 +143,8 @@
     "@stablelib/base64@1.0.1": {
       "integrity": "sha512-1bnPQqSxSuc3Ii6MhBysoWCg58j97aUjuCSZrGSmDxNqtytIi0k8utUenAwTZN4V5mXXYGsVUI9zeBqy+jBOSQ=="
     },
-    "@types/emscripten@1.41.5": {
-      "integrity": "sha512-cMQm7pxu6BxtHyqJ7mQZ2kXWV5SLmugybFdHCBbJ5eHzOo6VhBckEgAT3//rP5FwPHNPeEiq4SmQ5ucBwsOo4Q=="
+    "@types/emscripten@1.41.6": {
+      "integrity": "sha512-uN+9i8bFT5CUcZfyIEYDrSueACEyKGbUs5kC/72DGlZZoinh84sJfVV0i8UOJD1asdzkvLPBRrKs41kZ8MdEXg=="
     },
     "@types/node@26.6.6": {
       "integrity": "sha512-MzQj+8Kx3XI40OmUAE6Qoh58ZMNstNNMwn2nfd3qWsfe7nDNSqJNzes4njhz6AHwrSHOffSLwXU6yb474Q4aog==",
@@ -308,8 +308,8 @@
       ],
       "scripts": true
     },
-    "pyodide@0.29.4": {
-      "integrity": "sha512-tCseTsqU3kSxZIjkue5zXxTMNEwrKZwOIIEQRBA/VzHxFN1hoCxe4w41phfCdHd9it9RcCNQb5K/Re0InqMgvA==",
+    "pyodide@314.0.7": {
+      "integrity": "sha512-0YvXxEhfEdpLfb/XkM2BFAeMROq0iMUX2bzzH9pOttyMcWkwq+HbE5uyuGD82LN7y2q+SNvi/6V5JEsOlD2R1A==",
       "dependencies": [
         "@types/emscripten",
         "ws"
@@ -340,18 +340,18 @@
     "ws@8.21.1": {
       "integrity": "sha512-+0NTnW77fFN/DjQi6k/Sq/Yvk4Sgajw7urW8V+asjXnRgDs9gyGkdb7EzgfhA4goXsRIZKE28fzIXBHEzhuiWw=="
     },
-    "zod@4.4.3": {
-      "integrity": "sha512-ytENFjIJFl2UwYglde2jchW2Hwm4GJFLDiSXWdTrJQBIN9Fcyp7n4DhxJEiWNAJMV1/BqWfW/kkg71UDcHJyTQ=="
+    "zod@4.6.7": {
+      "integrity": "sha512-g8W2D2kU6a8untc053fX1uVBKzM7yqAxW/3zwk83+6RyF2+SKOuV+c0wBDhUwzV1PaGapmZH+rmcUzPf+3CGwg=="
     }
   },
   "workspace": {
     "dependencies": [
       "jsr:@std/csv@^1.0.6",
-      "jsr:@std/http@^1.1.2",
+      "jsr:@std/http@^1.1.4",
       "npm:@anthropic-ai/sdk@^1.6.0",
       "npm:@google/genai@3",
-      "npm:pyodide@~0.29.4",
-      "npm:zod@^4.4.3"
+      "npm:pyodide@^314.0.7",
+      "npm:zod@^4.6.7"
     ]
   }
 }
