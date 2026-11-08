@@ -31,7 +31,7 @@ const GREETINGS = [
 const ChatRoute: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
-  const [messages, setMessages] = useState<ChatMessage[]>([
+  const [messages, setMessages] = useState<ChatMessage[]>(() => [
     {
       role: "assistant",
       content: GREETINGS[Math.floor(Math.random() * GREETINGS.length)],

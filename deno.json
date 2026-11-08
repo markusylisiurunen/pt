@@ -10,11 +10,11 @@
     "lineWidth": 100
   },
   "imports": {
-    "@anthropic-ai/sdk": "npm:@anthropic-ai/sdk@^0.112.3",
-    "@google/genai": "npm:@google/genai@^1.52.0",
+    "@anthropic-ai/sdk": "npm:@anthropic-ai/sdk@^1.6.0",
+    "@google/genai": "npm:@google/genai@^3.0.0",
     "@std/csv": "jsr:@std/csv@^1.0.6",
-    "@std/http": "jsr:@std/http@^1.1.2",
-    "pyodide": "npm:pyodide@^0.29.4",
-    "zod": "npm:zod@^4.4.3"
+    "@std/http": "jsr:@std/http@^1.1.4",
+    "pyodide": "npm:pyodide@^314.0.7",
+    "zod": "npm:zod@^4.6.7"
   }
 }
