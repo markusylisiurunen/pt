@@ -48,8 +48,8 @@ class Agent {
   private client: Anthropic;
   private db: DatabaseSync;
 
-  private largeModel: Anthropic.Model = "claude-sonnet-5";
-  private smallModel: Anthropic.Model = "claude-haiku-4-5";
+  private largeModel: Anthropic.Model = "claude-sonnet-5-5";
+  private smallModel: Anthropic.Model = "claude-haiku-5-5";
 
   constructor(anthropicApiKey: string, geminiApiKey: string, db: DatabaseSync) {
     this.id = crypto.randomUUID();
@@ -210,16 +210,16 @@ Current time: ${getTimeAtTimeZone(now.toISOString(), "Europe/Helsinki")}
     // reset cache control breakpoints
     for (let i = 0; i < messages.length; i++) {
       if (messages[i].role !== "user") continue;
-      if (!Array.isArray(messages[i].content)) continue;
-      for (let u = 0; u < messages[i].content.length; u++) {
-        if ((messages[i].content[u] as Anthropic.Beta.BetaContentBlockParam).type === "text") {
-          (messages[i].content[u] as Anthropic.Beta.BetaTextBlockParam).cache_control = undefined;
+      const content = messages[i].content;
+      if (!Array.isArray(content)) continue;
+      for (let u = 0; u < content.length; u++) {
+        if ((content[u] as Anthropic.Beta.BetaContentBlockParam).type === "text") {
+          (content[u] as Anthropic.Beta.BetaTextBlockParam).cache_control = undefined;
         }
         if (
-          (messages[i].content[u] as Anthropic.Beta.BetaContentBlockParam).type === "tool_result"
+          (content[u] as Anthropic.Beta.BetaContentBlockParam).type === "tool_result"
         ) {
-          (messages[i].content[u] as Anthropic.Beta.BetaToolResultBlockParam).cache_control =
-            undefined;
+          (content[u] as Anthropic.Beta.BetaToolResultBlockParam).cache_control = undefined;
         }
       }
     }
@@ -227,13 +227,14 @@ Current time: ${getTimeAtTimeZone(now.toISOString(), "Europe/Helsinki")}
     // set the cache breakpoint for the last user message
     for (let i = messages.length - 1; i >= 0; i--) {
       if (messages[i].role !== "user") continue;
-      if (!Array.isArray(messages[i].content)) continue;
+      const content = messages[i].content;
+      if (!Array.isArray(content)) continue;
       let found = false;
-      for (let u = messages[i].content.length - 1; u >= 0; u--) {
+      for (let u = content.length - 1; u >= 0; u--) {
         if (found) break;
-        if ((messages[i].content[u] as Anthropic.Beta.BetaContentBlockParam).type === "text") {
+        if ((content[u] as Anthropic.Beta.BetaContentBlockParam).type === "text") {
           found = true;
-          (messages[i].content[u] as Anthropic.Beta.BetaTextBlockParam).cache_control = {
+          (content[u] as Anthropic.Beta.BetaTextBlockParam).cache_control = {
             type: "ephemeral",
           };
         }
@@ -244,15 +245,16 @@ Current time: ${getTimeAtTimeZone(now.toISOString(), "Europe/Helsinki")}
     // set the cache breakpoint for the last tool result
     for (let i = messages.length - 1; i >= 0; i--) {
       if (messages[i].role !== "user") continue;
-      if (!Array.isArray(messages[i].content)) continue;
+      const content = messages[i].content;
+      if (!Array.isArray(content)) continue;
       let found = false;
-      for (let u = messages[i].content.length - 1; u >= 0; u--) {
+      for (let u = content.length - 1; u >= 0; u--) {
         if (found) break;
         if (
-          (messages[i].content[u] as Anthropic.Beta.BetaContentBlockParam).type === "tool_result"
+          (content[u] as Anthropic.Beta.BetaContentBlockParam).type === "tool_result"
         ) {
           found = true;
-          (messages[i].content[u] as Anthropic.Beta.BetaToolResultBlockParam).cache_control = {
+          (content[u] as Anthropic.Beta.BetaToolResultBlockParam).cache_control = {
             type: "ephemeral",
           };
         }
