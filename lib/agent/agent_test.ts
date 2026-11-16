@@ -96,6 +96,7 @@ Deno.test("interrupted tool batches record completed writes and leave remaining 
     const log = Log.parse(JSON.parse(readDocumentContentBySlug(db, "log")));
     assert.equal(log.entries.length, 1);
     assert.equal(log.entries[0].kind, "food");
+    const recovered = agent.getHistory("chat");
     const row = db.prepare("SELECT messages FROM chats WHERE id = 'chat'").get() as {
       messages: string;
     };
@@ -104,7 +105,6 @@ Deno.test("interrupted tool batches record completed writes and leave remaining 
     assert.equal(history.at(-2).content[1].is_error, true);
 
     assert.match(history.at(-1).content[0].text, /no longer active/);
-    const recovered = agent.getHistory("chat");
     assert.equal(recovered.active, false);
     assert.equal(
       recovered.messages.find((message) => message.name === "AppendFoodLogEntry")?.status,

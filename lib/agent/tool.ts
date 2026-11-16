@@ -1,10 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
 import z from "zod";
 
-type JsonValue = string | number | boolean | null | undefined | JsonValue[] | {
-  [key: string]: JsonValue;
-};
-
 type AgentTool =
   | { mutates: true; definition: Anthropic.Tool; execute: (input: unknown) => string }
   | { mutates: false; definition: Anthropic.Tool; execute: (input: unknown) => Promise<string> };
@@ -13,7 +9,7 @@ function defineMutationTool<T extends z.ZodType>(
   name: string,
   description: string,
   schema: T,
-  execute: (input: z.output<T>) => Exclude<JsonValue, undefined>,
+  execute: (input: z.output<T>) => Record<string, unknown>,
 ): Extract<AgentTool, { mutates: true }> {
   return {
     mutates: true,

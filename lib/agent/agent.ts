@@ -134,7 +134,6 @@ class Agent {
         this.saveChatHistory(id, messages);
 
         for (const [index, block] of blocks.entries()) {
-          signal?.throwIfAborted();
           yield { type: "tool_use", name: block.name };
           signal?.throwIfAborted();
           const tool = this.tools.find((tool) => tool.definition.name === block.name);
@@ -195,7 +194,6 @@ class Agent {
       throw error;
     } finally {
       this.activeChats.delete(id);
-      this.recoverChatHistory(id);
     }
   }
 

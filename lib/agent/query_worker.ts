@@ -46,23 +46,13 @@ self.onmessage = (event: MessageEvent<QueryRequest>) => {
     const source = statement.sourceSQL.trim().replace(/;$/, "");
     const bounded = db.prepare(`SELECT * FROM (${source}\n) LIMIT 201`);
     bounded.setReturnArrays(true);
-    bounded.setReadBigInts(true);
     const columns = statement.columns().map((column) => column.name);
     const rows: unknown[][] = [];
     let bytes = new TextEncoder().encode(JSON.stringify(columns)).length;
     let truncated = false;
     // Deno's SQLite iterator can suppress execution errors; all() preserves them.
     for (const row of bounded.all(...params)) {
-      const values = (row as unknown as unknown[]).map((value) => {
-        if (typeof value === "bigint") {
-          return value <= BigInt(Number.MAX_SAFE_INTEGER) &&
-              value >= BigInt(Number.MIN_SAFE_INTEGER)
-            ? Number(value)
-            : value.toString();
-        }
-        if (value instanceof Uint8Array) throw new Error("Return text or numbers, not blobs.");
-        return value;
-      });
+      const values = row as unknown as unknown[];
       bytes += new TextEncoder().encode(JSON.stringify(values)).length + 1;
       if (rows.length >= 200 || bytes > 64000) {
         truncated = true;

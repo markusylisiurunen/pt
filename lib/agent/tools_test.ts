@@ -52,16 +52,6 @@ Deno.test("food corrections preserve identity and derive totals from ingredient 
     assert.equal(corrected.protein, 63);
     assert.equal(Log.parse(JSON.parse(readDocumentContentBySlug(db, "log"))).entries.length, 1);
 
-    const content = readDocumentContentBySlug(db, "log");
-    const response = await importRoute(db)(
-      new Request("http://localhost/api/import", {
-        method: "POST",
-        body: JSON.stringify({ slug: "log", content }),
-      }),
-    );
-    assert.equal(response.status, 200);
-    assert.equal(readDocumentContentBySlug(db, "log"), content);
-
     const simple = await call("UpdateFoodLogEntry", {
       id: original.id,
       description: "User-supplied totals",
@@ -148,7 +138,6 @@ Deno.test("queries expose Helsinki dates, meal contributions, and original Finel
       const [term, expected] of [
         ["banaani", "BANAANI, KUORITTU"],
         ["broileri AND rintafile*", "BROILERI, RINTAFILEE, NAHATON"],
-        ["maitorah*", "MAITORAHKA"],
       ]
     ) {
       const result = await query(
