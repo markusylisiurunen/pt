@@ -175,23 +175,6 @@ const ChatRoute: React.FC = () => {
                 return <AssistantMessage key={index} content={message.content} />;
               case "tool-use":
                 return <ToolUseMessage key={index} name={message.name} />;
-              case "tool-result":
-                return (
-                  <details key={index}>
-                    <summary>
-                      {message.name}:{" "}
-                      {
-                        {
-                          completed: "valmis",
-                          failed: "epäonnistui",
-                          pending: "kesken",
-                          "not-executed": "ei suoritettu",
-                        }[message.status]
-                      }
-                    </summary>
-                    <pre>{message.content}</pre>
-                  </details>
-                );
               case "error":
                 return (
                   <p key={index} className="error">

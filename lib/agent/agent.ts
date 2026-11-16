@@ -233,7 +233,6 @@ class Agent {
   getHistory(id: string) {
     const history = this.recoverChatHistory(id);
     const messages: Record<string, unknown>[] = [];
-    const calls = new Map<string, string>();
     for (const message of history) {
       if (typeof message.content === "string") {
         messages.push({ role: message.role, content: message.content, images: [] });
@@ -257,20 +256,8 @@ class Agent {
         );
       if (text || images.length) messages.push({ role: message.role, content: text, images });
       for (const block of content) {
-        if (block.type === "tool_use") calls.set(block.id, block.name);
-        if (block.type === "tool_result") {
-          messages.push({
-            role: "tool-result",
-            name: calls.get(block.tool_use_id) ?? block.tool_use_id,
-            status: block.content === unexecutedResult
-              ? (this.activeChats.has(id) ? "pending" : "not-executed")
-              : block.is_error
-              ? "failed"
-              : "completed",
-            content: typeof block.content === "string"
-              ? block.content
-              : JSON.stringify(block.content),
-          });
+        if (block.type === "tool_use") {
+          messages.push({ role: "tool-use", name: block.name });
         }
       }
     }

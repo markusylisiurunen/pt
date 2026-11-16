@@ -106,14 +106,11 @@ Deno.test("interrupted tool batches record completed writes and leave remaining 
 
     assert.match(history.at(-1).content[0].text, /no longer active/);
     assert.equal(recovered.active, false);
-    assert.equal(
-      recovered.messages.find((message) => message.name === "AppendFoodLogEntry")?.status,
-      "completed",
-    );
-    assert.equal(
-      recovered.messages.find((message) => message.name === "AppendWeightLogEntry")?.status,
-      "not-executed",
-    );
+    assert.deepEqual(recovered.messages.slice(1, -1), [
+      { role: "tool-use", name: "AppendFoodLogEntry" },
+      { role: "tool-use", name: "AppendWeightLogEntry" },
+    ]);
+    assert.match(String(recovered.messages.at(-1)?.content), /no longer active/);
 
     for await (const event of agent.send("chat", "What was saved?", [])) {
       assert.equal(event.type, "content_delta");

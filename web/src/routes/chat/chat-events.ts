@@ -7,12 +7,6 @@ type ChatMessage =
   | { role: "user"; content: string; images: ImageAttachment[] }
   | { role: "assistant"; content: string }
   | { role: "tool-use"; name: string }
-  | {
-      role: "tool-result";
-      name: string;
-      status: "completed" | "failed" | "pending" | "not-executed";
-      content: string;
-    }
   | { role: "error" };
 
 type AgentEvent =
