@@ -36,7 +36,7 @@ PT is a small, personal nutrition and training tracker. A Deno API stores local 
 
 ## Development
 
-Use Deno 2.9.8 or later. The agent's query and Python tools run in Deno workers with restricted permissions, which relies on the unstable `worker-options` feature enabled in `deno.json`.
+Use Deno 2.9.8 or later. The agent's query and Python tools run each call in a separate Deno process with restricted permissions, and the process is killed if the call exceeds its time limit. These processes start with `--cached-only` and cannot download modules, so `deno task dev` and the Dockerfile cache both scripts and their imports before the server starts.
 
 Install frontend dependencies once:
 
@@ -62,7 +62,7 @@ deno task format
 deno task check
 ```
 
-`deno task check` checks formatting, linting, type checking (including the tool workers), and tests, then lints and builds the frontend. Formatting skips the centrally managed files described under Agent setup.
+`deno task check` checks formatting, linting, type checking (including the tool process scripts), and tests, then lints and builds the frontend. Formatting skips the centrally managed files described under Agent setup.
 
 <!-- prettier-ignore-start -->
 

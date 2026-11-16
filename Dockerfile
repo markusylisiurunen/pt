@@ -9,7 +9,7 @@ RUN npm ci && \
 FROM denoland/deno:2.9.8
 WORKDIR /app
 COPY . .
-RUN deno cache main.ts lib/agent/query_worker.ts lib/agent/python_worker.ts
+RUN deno cache main.ts lib/agent/query_process.ts lib/agent/python_process.ts
 COPY --from=web /app/dist ./web/dist
 COPY ./data/fineli/fineli.json ./data/fineli/fineli.json
 RUN printf '#!/bin/sh -eu\n\

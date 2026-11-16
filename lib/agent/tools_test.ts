@@ -1,15 +1,16 @@
 import assert from "node:assert/strict";
 import { DatabaseSync } from "node:sqlite";
+import { fileURLToPath } from "node:url";
 import { readDocumentContentBySlug, writeDocumentContentBySlug } from "../db/docs.ts";
 import { migrateDocuments, migrateSchema } from "../db/migrate.ts";
-import { readLog } from "../db/agent.ts";
+import { readAgentDocuments, readLog } from "../db/agent.ts";
 import { Config } from "../entities/config.ts";
 import { Log } from "../entities/log.ts";
 import { importRoute } from "../routes/import.ts";
 import { executePythonTool } from "./tool_execute_python.ts";
 import { queryDatabaseTool } from "./tool_query_database.ts";
 import { createTools } from "./tools.ts";
-import { runToolWorker } from "./worker.ts";
+import { runToolProcess } from "./process.ts";
 
 function createDatabase() {
   const db = new DatabaseSync(":memory:");
@@ -129,7 +130,7 @@ Deno.test("queries expose Helsinki dates, meal contributions, and original Finel
     assert.deepEqual(
       (await query(
         "SELECT local_date, SUM(i.kcal), SUM(i.protein) FROM food_log f " +
-          "JOIN food_ingredients i ON i.entry_id = f.id GROUP BY local_date",
+          "JOIN food_ingredients i ON i.entry_rowid = f.rowid GROUP BY local_date",
       )).rows,
       [["2026-07-02", 120, 8]],
     );
@@ -149,6 +150,68 @@ Deno.test("queries expose Helsinki dates, meal contributions, and original Finel
       assert.ok(result.rows.some((row: unknown[]) => String(row[0]).includes(expected)), term);
       assert.ok(result.rows.every((row: unknown[]) => typeof row[1] === "number"));
     }
+  } finally {
+    db.close();
+  }
+});
+
+Deno.test("query snapshots retain duplicate document IDs and separate meal contributions", async () => {
+  const db = createDatabase();
+  try {
+    const id = crypto.randomUUID();
+    const entries = [
+      ...[100, 200].map((kcal) => ({
+        id,
+        ts: "2026-01-01T00:00:00.000Z",
+        kind: "food",
+        description: `Meal ${kcal}`,
+        ingredients: [{ description: "Ingredient", kcal, protein: 10 }],
+      })),
+      ...[70, 71].map((weight) => ({
+        id,
+        ts: "2026-01-01T00:00:00.000Z",
+        kind: "weight",
+        weight,
+      })),
+    ];
+    const ingredients = [100, 200].map((kcal) => ({
+      id,
+      name: `Ingredient ${kcal}`,
+      unit: "g",
+      nutrients: { kcal, protein: 10 },
+    }));
+    for (
+      const [slug, content] of [
+        ["log", JSON.stringify({ entries })],
+        ["known-ingredients", JSON.stringify({ ingredients })],
+      ]
+    ) {
+      const response = await importRoute(db)(
+        new Request("http://localhost/api/import", {
+          method: "POST",
+          body: JSON.stringify({ slug, content }),
+        }),
+      );
+      assert.equal(response.status, 200);
+    }
+    const query = async (sql: string) => JSON.parse(await queryDatabaseTool(db).execute({ sql }));
+    assert.deepEqual(
+      (await query(
+        "SELECT f.id, f.kcal, SUM(i.kcal) FROM food_log f " +
+          "JOIN food_ingredients i ON i.entry_rowid = f.rowid GROUP BY f.rowid ORDER BY f.rowid",
+      )).rows,
+      [[id, 100, 100], [id, 200, 200]],
+    );
+    assert.deepEqual((await query("SELECT weight_kg FROM weight_log ORDER BY rowid")).rows, [
+      [70],
+      [71],
+    ]);
+    assert.deepEqual(
+      (await query("SELECT kcal_per_100 FROM known_ingredients ORDER BY rowid")).rows,
+      [[100], [200]],
+    );
+    assert.ok((await query("SELECT COUNT(*) FROM fineli_foods")).rows[0][0] > 0);
+    assert.equal(readLog(db).entries.length, 4);
   } finally {
     db.close();
   }
@@ -202,16 +265,32 @@ Deno.test("Python calculations have fresh state and no application globals", asy
   );
 });
 
-Deno.test("tool workers terminate when code does not finish", async () => {
-  const url = URL.createObjectURL(
-    new Blob(["onmessage = () => { while (true) {} };"], {
-      type: "application/javascript",
-    }),
-  );
+Deno.test("tool processes stop synchronous SQL and Python execution at the deadline", async () => {
+  const db = createDatabase();
   try {
-    await assert.rejects(() => runToolWorker(new URL(url), {}, 100), /timed out/);
+    await assert.rejects(
+      () =>
+        runToolProcess(new URL("./query_process.ts", import.meta.url), {
+          sql:
+            "WITH RECURSIVE n(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM n) SELECT SUM(x) FROM n",
+          params: [],
+          documents: readAgentDocuments(db),
+          fineli: [],
+        }, 1000),
+      /timed out/,
+    );
+    await assert.rejects(
+      () =>
+        runToolProcess(
+          new URL("./python_process.ts", import.meta.url),
+          { code: "while True: pass" },
+          3000,
+          [fileURLToPath(new URL(".", import.meta.resolve("pyodide")))],
+        ),
+      /timed out/,
+    );
   } finally {
-    URL.revokeObjectURL(url);
+    db.close();
   }
 });
 

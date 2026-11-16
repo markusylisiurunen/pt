@@ -1,7 +1,7 @@
 import { fileURLToPath } from "node:url";
 import z from "zod";
 import { defineReadTool } from "./tool.ts";
-import { runToolWorker } from "./worker.ts";
+import { runToolProcess } from "./process.ts";
 
 const executePythonTool = defineReadTool(
   "ExecutePython",
@@ -12,8 +12,8 @@ const executePythonTool = defineReadTool(
     "seconds or prints more than 32 KiB.",
   z.object({ code: z.string().min(1).max(50000).describe("Python code to execute.") }).strict(),
   (input) =>
-    runToolWorker<string>(
-      new URL("./python_worker.ts", import.meta.url),
+    runToolProcess<string>(
+      new URL("./python_process.ts", import.meta.url),
       input,
       30000,
       [fileURLToPath(new URL(".", import.meta.resolve("pyodide")))],

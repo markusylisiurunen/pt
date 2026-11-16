@@ -3,7 +3,7 @@ import z from "zod";
 import { querySchema, readAgentDocuments } from "../db/agent.ts";
 import { loadFineliData } from "../db/fineli.ts";
 import { defineReadTool } from "./tool.ts";
-import { runToolWorker } from "./worker.ts";
+import { runToolProcess } from "./process.ts";
 
 const queryInput = z.object({
   sql: z.string().min(1).max(20000),
@@ -21,7 +21,9 @@ Schema:
 ${querySchema}
 Timestamps are UTC ISO 8601 strings. local_date is the Europe/Helsinki calendar date (YYYY-MM-DD).
 Calories are kcal; protein is grams. Missing nutrition is NULL, not zero.
-food_ingredients contains optional meal breakdowns, with zero-based positions.
+The id columns can repeat, so use rowid to tell rows apart. Rowids are rebuilt for every query.
+food_ingredients contains optional meal breakdowns, with zero-based positions. Join
+food_ingredients.entry_rowid to food_log.rowid. entry_id is the meal's id.
 known_ingredients values are per 100 of its unit (g or ml). Fineli values are per 100 grams;
 fineli_portions supplies gram weights for servings, including volume-based servings.
 profile and training_program each contain one row. memories.entry is the exact saved text.
@@ -35,8 +37,8 @@ lower(name) LIKE ? (SQLite lower() changes only ASCII letters). From the results
 the record that matches the actual product and how it was prepared.`,
     queryInput,
     async (input) => {
-      const result = await runToolWorker(
-        new URL("./query_worker.ts", import.meta.url),
+      const result = await runToolProcess(
+        new URL("./query_process.ts", import.meta.url),
         { ...input, documents: readAgentDocuments(db), fineli: loadFineliData() },
         10000,
       );

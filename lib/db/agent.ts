@@ -8,17 +8,17 @@ import type { FineliFood } from "./fineli.ts";
 
 const querySchema = `
 CREATE TABLE food_log (
-  id TEXT PRIMARY KEY, timestamp TEXT, local_date TEXT, description TEXT, notes TEXT,
+  id TEXT, timestamp TEXT, local_date TEXT, description TEXT, notes TEXT,
   kcal REAL, protein REAL
 );
 CREATE TABLE food_ingredients (
-  entry_id TEXT, position INTEGER, description TEXT, kcal REAL, protein REAL
+  entry_id TEXT, entry_rowid INTEGER, position INTEGER, description TEXT, kcal REAL, protein REAL
 );
 CREATE TABLE weight_log (
-  id TEXT PRIMARY KEY, timestamp TEXT, local_date TEXT, weight_kg REAL
+  id TEXT, timestamp TEXT, local_date TEXT, weight_kg REAL
 );
 CREATE TABLE known_ingredients (
-  id TEXT PRIMARY KEY, name TEXT, brand TEXT, unit TEXT, kcal_per_100 REAL, protein_per_100 REAL
+  id TEXT, name TEXT, brand TEXT, unit TEXT, kcal_per_100 REAL, protein_per_100 REAL
 );
 CREATE TABLE profile (
   user_info TEXT, daily_kcal REAL, daily_protein REAL, target_weight_kg REAL, target_weight_date TEXT
@@ -67,13 +67,13 @@ function createQueryDatabase(documents: AgentDocuments, fineli: FineliFood[]): D
     db.exec(querySchema);
     db.exec("BEGIN");
     const food = db.prepare("INSERT INTO food_log VALUES (?, ?, ?, ?, ?, ?, ?)");
-    const ingredient = db.prepare("INSERT INTO food_ingredients VALUES (?, ?, ?, ?, ?)");
+    const ingredient = db.prepare("INSERT INTO food_ingredients VALUES (?, ?, ?, ?, ?, ?)");
     const weight = db.prepare("INSERT INTO weight_log VALUES (?, ?, ?, ?)");
     for (const entry of documents.log.entries) {
       const timestamp = new Date(entry.ts).toISOString();
       const date = getDateAtTimeZone(timestamp, "Europe/Helsinki");
       if (entry.kind === "food") {
-        food.run(
+        const { lastInsertRowid } = food.run(
           entry.id,
           timestamp,
           date,
@@ -83,7 +83,14 @@ function createQueryDatabase(documents: AgentDocuments, fineli: FineliFood[]): D
           entry.protein ?? null,
         );
         entry.ingredients?.forEach((item, index) => {
-          ingredient.run(entry.id, index, item.description, item.kcal, item.protein);
+          ingredient.run(
+            entry.id,
+            lastInsertRowid,
+            index,
+            item.description,
+            item.kcal,
+            item.protein,
+          );
         });
       } else {
         weight.run(entry.id, timestamp, date, entry.weight);

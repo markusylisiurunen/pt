@@ -1,15 +1,14 @@
 {
   "tasks": {
-    "check": "deno task format:check && deno task lint && deno check main.ts lib/agent/query_worker.ts lib/agent/python_worker.ts && deno task test && deno task web:check",
+    "check": "deno task format:check && deno task lint && deno check main.ts lib/agent/query_process.ts lib/agent/python_process.ts && deno task test && deno task web:check",
     "format": "deno fmt main.ts lib deno.json && deno task prettier --write",
     "format:check": "deno fmt --check main.ts lib deno.json && deno task prettier --check",
     "prettier": "deno run -A npm:prettier@3.10.1 \"**/*.md\" \"web/**/*.{ts,tsx,js,json,css,html}\" .prettierrc",
-    "dev": "deno serve --env-file --watch -A main.ts",
+    "dev": "deno cache main.ts lib/agent/query_process.ts lib/agent/python_process.ts && deno serve --env-file --watch -A main.ts",
     "lint": "deno lint main.ts lib",
-    "test": "deno test --allow-env --allow-read --allow-write",
+    "test": "deno test --allow-env --allow-read --allow-write --allow-run=deno",
     "web:check": "npm run lint --prefix web && npm run build --prefix web"
   },
-  "unstable": ["worker-options"],
   "fmt": {
     "lineWidth": 100
   },
