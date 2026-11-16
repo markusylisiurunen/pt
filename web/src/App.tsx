@@ -1,12 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Navigate, Outlet, Route, Routes } from "react-router";
-import {
-  fetchUser,
-  forgetUser,
-  getActiveToken,
-  getPageToken,
-  rememberUser,
-} from "./auth";
+import { fetchUser, forgetUser, getActiveToken, getPageToken, rememberUser } from "./auth";
 import { ChatRoute } from "./routes/chat/chat";
 import { HomeRoute } from "./routes/home/home";
 import { LoginRoute } from "./routes/login/login";

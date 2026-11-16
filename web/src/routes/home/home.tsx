@@ -1,4 +1,4 @@
-import { ArrowRightIcon, PlusIcon } from "lucide-react";
+import { ArrowRightIcon, ChevronRightIcon, PlusIcon } from "lucide-react";
 import React, { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router";
 import {
@@ -13,17 +13,25 @@ import { FoodLogEntries } from "./components/food-log-entries";
 import { IntakeCard } from "./components/intake-card";
 import { IntakeHistory } from "./components/intake-history";
 import { Memories } from "./components/memories";
-import { WeightForm } from "./components/weight-form";
-import { WeightGraph } from "./components/weight-graph";
+import { WeightCard } from "./components/weight-card";
 import "./home.css";
 
 type HomeSection = "nutrition" | "weight" | "training" | "memories";
+
+function getGreeting(date: Date): string {
+  const hour = date.getHours();
+  if (hour >= 5 && hour < 10) return "Hyvää huomenta";
+  if (hour >= 10 && hour < 17) return "Hyvää päivää";
+  if (hour >= 17 && hour < 22) return "Hyvää iltaa";
+  return "Hyvää yötä";
+}
 
 const HomeRoute: React.FC = () => {
   const navigate = useNavigate();
   const [now, setNow] = useState(() => new Date().toISOString());
   const users = useMemo(() => getSavedUsers(), []);
   const pageToken = getPageToken();
+  const userName = users.find((user) => user.token === pageToken)?.name;
 
   const [hiddenHomeSections, setHiddenHomeSections] = useState<HomeSection[] | null>(null);
   const [memories, setMemories] = useState<string[]>([]);
@@ -37,8 +45,8 @@ const HomeRoute: React.FC = () => {
     {
       ts: string;
       label: string;
-      kcal: number;
-      protein: number;
+      kcal?: number;
+      protein?: number;
     }[]
   >([]);
 
@@ -93,8 +101,8 @@ const HomeRoute: React.FC = () => {
           foodLogToday: {
             ts: string;
             label: string;
-            kcal: number;
-            protein: number;
+            kcal?: number;
+            protein?: number;
           }[];
         };
         setHiddenHomeSections(data.config.hiddenHomeSections);
@@ -117,73 +125,82 @@ const HomeRoute: React.FC = () => {
   }, []);
 
   return (
-    <div className="home-root">
-      <div className="users">
+    <main className="page home">
+      <nav className="users">
         {users.map((user) => (
           <button
-            className={user.token === pageToken ? "active" : undefined}
+            aria-current={user.token === pageToken ? "true" : undefined}
+            className="pill"
             key={user.name}
             onClick={() => handleSwitchUser(user)}
           >
             {user.name}
           </button>
         ))}
-        <button aria-label="Lisää käyttäjä" onClick={() => navigate("/login")}>
-          <PlusIcon size={20} strokeWidth={2.25} />
+        <button
+          className="pill icon"
+          aria-label="Lisää käyttäjä"
+          onClick={() => navigate("/login")}
+        >
+          <PlusIcon size={18} strokeWidth={2.5} />
         </button>
-      </div>
-      <div className="header">
-        <button onClick={handleLogout}>Poistu</button>
-        <button onClick={() => navigate(`/chats/${crypto.randomUUID()}`)}>
-          <span>Keskustele</span>
-          <ArrowRightIcon size={20} strokeWidth={2.25} />
+        <button className="pill logout" onClick={handleLogout}>
+          Poistu
         </button>
-      </div>
+      </nav>
+      <h1 className="page-title">
+        {getGreeting(new Date(now))}
+        {userName ? `, ${userName}` : ""}
+      </h1>
+      <button className="cta" onClick={() => navigate(`/chats/${crypto.randomUUID()}`)}>
+        Keskustele
+        <span>
+          <ArrowRightIcon size={18} strokeWidth={2.25} />
+        </span>
+      </button>
       {isHomeSectionVisible("nutrition") ? (
-        <div className="intake">
-          <IntakeCard
-            heading="Kalorit"
-            current={dailyIntake.kcal}
-            target={dailyTarget.kcal}
-            unit="kcal"
-            maximumFractionDigits={0}
-          />
-          <IntakeCard
-            heading="Proteiini"
-            current={dailyIntake.protein}
-            target={dailyTarget.protein}
-            unit="g"
-            maximumFractionDigits={1}
-          />
-        </div>
+        <>
+          <div className="intake">
+            <IntakeCard
+              heading="Kalorit"
+              unit="kcal"
+              subject="kcal"
+              current={dailyIntake.kcal}
+              target={dailyTarget.kcal}
+              goal="max"
+              maximumFractionDigits={0}
+            />
+            <IntakeCard
+              heading="Proteiini"
+              unit="g"
+              subject="protein"
+              current={dailyIntake.protein}
+              target={dailyTarget.protein}
+              goal="min"
+              maximumFractionDigits={1}
+            />
+          </div>
+          <FoodLogEntries entries={foodLogToday} />
+          <IntakeHistory now={now} target={dailyTarget.kcal} history={intakeHistory} />
+        </>
       ) : null}
       {isHomeSectionVisible("weight") && targetWeightDate !== null ? (
-        <>
-          <WeightForm onSaved={handleWeightSaved} />
-          <WeightGraph
-            now={now}
-            history={weightHistory}
-            targetDate={targetWeightDate}
-            targetWeight={targetWeightValue}
-          />
-        </>
-      ) : null}
-      {isHomeSectionVisible("nutrition") ? (
-        <>
-          <IntakeHistory target={dailyTarget.kcal} history={intakeHistory} />
-          <FoodLogEntries entries={foodLogToday} />
-        </>
+        <WeightCard
+          now={now}
+          history={weightHistory}
+          targetDate={targetWeightDate}
+          targetWeight={targetWeightValue}
+          onSaved={handleWeightSaved}
+        />
       ) : null}
       {isHomeSectionVisible("training") ? (
-        <Link to="/training-program">
-          <span>Treeniohjelma</span>
-          <ArrowRightIcon size={20} strokeWidth={2} />
+        <Link className="card training-link" to="/training-program">
+          Treeniohjelma
+          <ChevronRightIcon size={20} />
         </Link>
       ) : null}
-      {isHomeSectionVisible("memories") ? (
-        <Memories memories={memories} />
-      ) : null}
-    </div>
+      {isHomeSectionVisible("memories") ? <Memories memories={memories} /> : null}
+    </main>
   );
 };
 

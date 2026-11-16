@@ -16,16 +16,11 @@ const RECORDING_STATE = {
   IDLE: "idle",
   RECORDING: "recording",
   PROCESSING: "processing",
-  ERROR: "error",
 } as const;
 
 type RecordingState = (typeof RECORDING_STATE)[keyof typeof RECORDING_STATE];
 type TranscriptionErrorType =
-  | "network"
-  | "permission"
-  | "unsupported"
-  | "transcription"
-  | "unknown";
+  "network" | "permission" | "unsupported" | "transcription" | "unknown";
 type TranscriptionError = Error & { type: TranscriptionErrorType };
 
 function createTranscriptionError(
@@ -54,10 +49,7 @@ function normalizeTranscriptionError(
 
 function getRecordingMimeType(): string {
   if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === "undefined") {
-    throw createTranscriptionError(
-      "Your browser doesn't support audio recording",
-      "unsupported",
-    );
+    throw createTranscriptionError("Your browser doesn't support audio recording", "unsupported");
   }
 
   const mimeType = RECORDING_MIME_TYPES.find((type) => MediaRecorder.isTypeSupported(type));
@@ -175,7 +167,7 @@ const AudioButton: React.FC<AudioButtonProps> = ({ onTranscript, onError }) => {
 
   function reportError(error: TranscriptionError) {
     if (disposedRef.current) return;
-    setState(RECORDING_STATE.ERROR);
+    setState(RECORDING_STATE.IDLE);
     onError(error);
   }
 
@@ -263,9 +255,7 @@ const AudioButton: React.FC<AudioButtonProps> = ({ onTranscript, onError }) => {
           setState(RECORDING_STATE.IDLE);
           onTranscript(transcript);
         } catch (error) {
-          reportError(
-            normalizeTranscriptionError(error, "Transcription failed", "transcription"),
-          );
+          reportError(normalizeTranscriptionError(error, "Transcription failed", "transcription"));
         }
       };
 
@@ -305,15 +295,10 @@ const AudioButton: React.FC<AudioButtonProps> = ({ onTranscript, onError }) => {
         );
       } else if (error instanceof DOMException && error.name === "NotReadableError") {
         reportError(
-          createTranscriptionError(
-            "Microphone is being used by another application.",
-            "unknown",
-          ),
+          createTranscriptionError("Microphone is being used by another application.", "unknown"),
         );
       } else {
-        reportError(
-          normalizeTranscriptionError(error, "Failed to start recording", "unknown"),
-        );
+        reportError(normalizeTranscriptionError(error, "Failed to start recording", "unknown"));
       }
     }
   }
@@ -330,35 +315,26 @@ const AudioButton: React.FC<AudioButtonProps> = ({ onTranscript, onError }) => {
   function handleClick() {
     if (state === RECORDING_STATE.RECORDING) {
       stopRecording();
-    } else if (state === RECORDING_STATE.IDLE || state === RECORDING_STATE.ERROR) {
+    } else if (state === RECORDING_STATE.IDLE) {
       startRecording();
     }
   }
 
   const isRecording = state === RECORDING_STATE.RECORDING;
   const isProcessing = state === RECORDING_STATE.PROCESSING;
-  const hasError = state === RECORDING_STATE.ERROR;
 
   return (
     <button
-      id="audio"
+      className="icon-button audio"
+      aria-label={isRecording ? "Lopeta nauhoitus" : "Nauhoita ääniviesti"}
       data-recording={isRecording || isProcessing ? true : undefined}
-      data-error={hasError ? true : undefined}
       disabled={isProcessing}
       onClick={handleClick}
     >
       {isRecording ? (
-        <div className="timer">
-          <span>Nauhoitetaan... {formatTime(recordingTime)}</span>
-        </div>
+        <span>Nauhoitetaan… {formatTime(recordingTime)}</span>
       ) : isProcessing ? (
-        <div className="processing">
-          <span>Käsitellään...</span>
-        </div>
-      ) : hasError ? (
-        <div className="error">
-          <span>Virhe</span>
-        </div>
+        <span>Käsitellään…</span>
       ) : (
         <AudioLinesIcon size={20} strokeWidth={2} />
       )}

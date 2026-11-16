@@ -5,6 +5,18 @@ type WeightEntry = {
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
+function getHelsinkiDate(date: string): string {
+  const parts = new Intl.DateTimeFormat("fi-FI", {
+    day: "2-digit",
+    month: "2-digit",
+    timeZone: "Europe/Helsinki",
+    year: "numeric",
+  }).formatToParts(new Date(date));
+  const getPart = (type: Intl.DateTimeFormatPartTypes) =>
+    parts.find((part) => part.type === type)!.value;
+  return `${getPart("year")}-${getPart("month")}-${getPart("day")}`;
+}
+
 function dateValue(date: string): number {
   return new Date(`${date}T00:00:00Z`).getTime();
 }
@@ -47,4 +59,4 @@ function calculateSmoothWeightHistory(
   });
 }
 
-export { addDays, calculateSmoothWeightHistory, daysBetween };
+export { addDays, calculateSmoothWeightHistory, daysBetween, getHelsinkiDate };

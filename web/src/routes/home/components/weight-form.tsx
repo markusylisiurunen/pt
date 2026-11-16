@@ -45,15 +45,15 @@ const WeightForm: React.FC<WeightFormProps> = ({ onSaved }) => {
 
   return (
     <form className="weight-form" onSubmit={handleSubmit}>
-      <label htmlFor="weight">Tämän päivän paino</label>
       <div className="fields">
         <input
+          className="field"
+          aria-label="Tämän päivän paino (kg)"
           autoComplete="off"
           enterKeyHint="done"
-          id="weight"
           inputMode="decimal"
           pattern="[0-9]+([.,][0-9]+)?"
-          placeholder="Paino (kg)"
+          placeholder="Tämän päivän paino"
           type="text"
           value={value}
           onChange={(event) => {
@@ -61,11 +61,15 @@ const WeightForm: React.FC<WeightFormProps> = ({ onSaved }) => {
             setError("");
           }}
         />
-        <button disabled={submitting || parseWeight(value) === null} type="submit">
+        <button
+          className="button"
+          disabled={submitting || parseWeight(value) === null}
+          type="submit"
+        >
           Tallenna
         </button>
       </div>
-      {error ? <div className="error">{error}</div> : null}
+      {error ? <p className="error">{error}</p> : null}
     </form>
   );
 };

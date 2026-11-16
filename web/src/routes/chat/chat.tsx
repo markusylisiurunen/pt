@@ -2,7 +2,6 @@ import { ArrowUpIcon, ChevronLeftIcon, ImageIcon, LoaderCircleIcon, XIcon } from
 import React, { useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { authenticatedFetch } from "../../auth";
-import { getSafeAreaInsets } from "../../util/safe-area";
 import "./chat.css";
 import {
   applyAgentEvent,
@@ -125,53 +124,38 @@ const ChatRoute: React.FC = () => {
   }
 
   return (
-    <div className="chat-root">
+    <main className="chat">
       <div ref={historyRef} className="history">
-        <div className="header">
-          <button id="back" onClick={() => navigate(-1)}>
+        <div className="messages">
+          <button className="pill back" onClick={() => navigate(-1)}>
             <ChevronLeftIcon size={20} strokeWidth={2.25} />
-            <span>Takaisin</span>
+            Takaisin
           </button>
+          {messages.map((message, index) => {
+            switch (message.role) {
+              case "user":
+                return (
+                  <UserMessage key={index} content={message.content} images={message.images} />
+                );
+              case "assistant":
+                if (message.content.trim() === "") return null;
+                return <AssistantMessage key={index} content={message.content} />;
+              case "tool-use":
+                return <ToolUseMessage key={index} name={message.name} />;
+              case "error":
+                return (
+                  <p key={index} className="error">
+                    Vastauksen lähettäminen epäonnistui.
+                  </p>
+                );
+            }
+          })}
         </div>
-        {messages.map((message, index) => {
-          const spacer = index > 0 ? <div style={{ height: 16 }} /> : null;
-          switch (message.role) {
-            case "user":
-              return (
-                <React.Fragment key={message.role + "-" + index}>
-                  {spacer}
-                  <UserMessage content={message.content} images={message.images} />
-                </React.Fragment>
-              );
-            case "assistant":
-              if (message.content.trim() === "") {
-                return null;
-              }
-              return (
-                <React.Fragment key={message.role + "-" + index}>
-                  {spacer}
-                  <AssistantMessage content={message.content} />
-                </React.Fragment>
-              );
-            case "tool-use":
-              return (
-                <React.Fragment key={message.role + "-" + index}>
-                  {spacer}
-                  <ToolUseMessage name={message.name} />
-                </React.Fragment>
-              );
-            case "error":
-              return (
-                <React.Fragment key={message.role + "-" + index}>
-                  {spacer}
-                  <div className="chat-error">Vastauksen lähettäminen epäonnistui.</div>
-                </React.Fragment>
-              );
-          }
-        })}
       </div>
-      <div className="inputbox" style={{ marginBlockEnd: getSafeAreaInsets().bottom > 0 ? 0 : 12 }}>
+      <div className="composer card">
         <textarea
+          rows={1}
+          aria-label="Viesti"
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => {
@@ -183,47 +167,50 @@ const ChatRoute: React.FC = () => {
           placeholder="Kirjoita mitä vain"
         />
         <div className="actions">
-          <div>
-            {images.length > 0 ? (
-              <button id="clear-attached" onClick={() => setImages([])}>
-                <span>
-                  {images.length} kuva{images.length > 1 ? "a" : ""}
-                </span>
-                <XIcon size={16} strokeWidth={2} />
-              </button>
-            ) : null}
-          </div>
-          <div>
-            <input
-              accept="image/jpeg,image/png"
-              multiple={true}
-              ref={fileInputRef}
-              style={{ display: "none" }}
-              type="file"
-              onChange={handleImageChange}
-            />
-            <button id="attach" onClick={() => fileInputRef.current?.click()}>
-              <ImageIcon size={20} strokeWidth={2} />
+          <input
+            accept="image/jpeg,image/png"
+            multiple={true}
+            ref={fileInputRef}
+            style={{ display: "none" }}
+            type="file"
+            onChange={handleImageChange}
+          />
+          <button
+            className="icon-button"
+            aria-label="Liitä kuva"
+            onClick={() => fileInputRef.current?.click()}
+          >
+            <ImageIcon size={20} strokeWidth={2} />
+          </button>
+          <AudioButton
+            onTranscript={(transcript) =>
+              setInput((input) => (input.trim() + "\n\n" + transcript).trim())
+            }
+            onError={(error) => {
+              alert(`${error.message} (${error.type})`);
+            }}
+          />
+          {images.length > 0 ? (
+            <button className="attachments" onClick={() => setImages([])}>
+              {images.length} kuva{images.length > 1 ? "a" : ""}
+              <XIcon size={16} strokeWidth={2.25} />
             </button>
-            <AudioButton
-              onTranscript={(transcript) =>
-                setInput((input) => (input.trim() + "\n\n" + transcript).trim())
-              }
-              onError={(error) => {
-                alert(`${error.message} (${error.type})`);
-              }}
-            />
-            <button id="send" onClick={sendMessage} disabled={isStreaming}>
-              {isStreaming ? (
-                <LoaderCircleIcon size={20} strokeWidth={2.25} />
-              ) : (
-                <ArrowUpIcon size={20} strokeWidth={2.25} />
-              )}
-            </button>
-          </div>
+          ) : null}
+          <button
+            className="icon-button send"
+            aria-label="Lähetä"
+            onClick={sendMessage}
+            disabled={isStreaming || (input.trim() === "" && images.length === 0)}
+          >
+            {isStreaming ? (
+              <LoaderCircleIcon size={20} strokeWidth={2.25} />
+            ) : (
+              <ArrowUpIcon size={20} strokeWidth={2.25} />
+            )}
+          </button>
         </div>
       </div>
-    </div>
+    </main>
   );
 };
 

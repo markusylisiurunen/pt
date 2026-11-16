@@ -4,39 +4,44 @@ type FoodLogEntriesProps = {
   entries: {
     ts: string;
     label: string;
-    kcal: number;
-    protein: number;
+    kcal?: number;
+    protein?: number;
   }[];
 };
 const FoodLogEntries: React.FC<FoodLogEntriesProps> = ({ entries }) => {
-  function formatDate(dateStr: string): string {
-    return new Date(dateStr)
+  function formatTime(ts: string): string {
+    return new Date(ts)
       .toLocaleTimeString("fi-FI", { hour: "2-digit", minute: "2-digit", hour12: false })
       .replaceAll(".", ":");
   }
-  function formatNumber(value: number): string {
-    return value.toLocaleString("fi-FI", { maximumFractionDigits: 0 });
+  function formatNumber(value: number | undefined): string {
+    if (value === undefined) return "–";
+    return value.toLocaleString("fi-FI", { maximumFractionDigits: 0, useGrouping: false });
   }
   return (
-    <div className="food-log-entries">
-      <div className="header">
-        <h3>Syömiset</h3>
-        <span>kcal/prot.</span>
-      </div>
-      <div className="entries">
-        {entries.map((entry, index) => (
-          <React.Fragment key={index}>
-            <span>
-              <span>{formatDate(entry.ts) + " "}</span>
-              <span>{entry.label}</span>
-            </span>
-            <span>
-              {formatNumber(entry.kcal)}/{formatNumber(entry.protein)}
-            </span>
-          </React.Fragment>
-        ))}
-      </div>
-    </div>
+    <section className="card food-log">
+      <header className="card-header">
+        <h2>Syömiset</h2>
+      </header>
+      {entries.length === 0 ? (
+        <p className="empty">Ei vielä merkintöjä tänään.</p>
+      ) : (
+        <ul className="rows">
+          {entries.map((entry, index) => (
+            <li key={index}>
+              <span className="time">{formatTime(entry.ts)}</span>
+              <span className="label">{entry.label}</span>
+              <span className="kcal" title="kcal">
+                {formatNumber(entry.kcal)}
+              </span>
+              <span className="protein" title="proteiini (g)">
+                {formatNumber(entry.protein)}
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
   );
 };
 

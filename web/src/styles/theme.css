@@ -1,17 +1,60 @@
 :root {
   --theme-hue: 60;
 
-  --color-bg-btn-primary: lch(97% 8 var(--theme-hue));
-  --color-bg-btn-secondary: lch(97% 8 var(--theme-hue) / 0.12);
+  /* surfaces */
   --color-bg: lch(7.2% 2 var(--theme-hue));
-  --color-border-accent: lch(92% 68 var(--theme-hue));
-  --color-border-muted: lch(24% 4 var(--theme-hue));
-  --color-border: lch(36% 4 var(--theme-hue));
-  --color-text-on-bg-btn-primary: lch(7.2% 2 var(--theme-hue));
-  --color-text-on-bg-btn-secondary: lch(94% 4 var(--theme-hue));
-  --color-text-placeholder: lch(52% 4 var(--theme-hue));
-  --color-text: lch(94% 4 var(--theme-hue));
+  --color-surface: lch(12% 3.5 var(--theme-hue));
+  --color-field: lch(8.5% 2.5 var(--theme-hue));
+  --color-line: lch(19% 5 var(--theme-hue));
 
-  --radius-md: 5px;
-  --radius-lg: 8px;
+  /* text */
+  --color-text: lch(94% 4 var(--theme-hue));
+  --color-text-secondary: lch(66% 8 var(--theme-hue));
+  --color-text-tertiary: lch(52% 7 var(--theme-hue));
+
+  /* primary actions */
+  --color-action: lch(97% 8 var(--theme-hue));
+  --color-on-action: var(--color-bg);
+
+  /* errors */
+  --color-error: lch(70% 50 30);
+  --color-error-soft: lch(22% 18 30);
+
+  /* subjects keep their colors in every theme */
+  --color-kcal: lch(78% 48 55);
+  --color-kcal-soft: lch(24% 16 55);
+  --color-kcal-muted: lch(42% 22 55);
+  --color-protein: lch(82% 38 150);
+  --color-protein-soft: lch(23% 13 150);
+  --color-weight: lch(78% 30 285);
+  --color-weight-soft: lch(22% 12 285);
+
+  /* type scale: each size comes with its own tracking and line height */
+  --text-display: 32px;
+  --text-title: 28px;
+  --text-heading: 20px;
+  --text-body: 16px;
+  --text-label: 15px;
+  --text-footnote: 13px;
+  --text-caption: 11px;
+
+  --weight-regular: 400;
+  --weight-medium: 550;
+  --weight-bold: 650;
+
+  --tracking-body: -0.01em;
+  --tracking-display: -0.03em;
+  --leading-none: 1;
+  --leading-tight: 1.2;
+  --leading-body: 1.5;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+
+  --radius-card: 24px;
+  --radius-pill: 999px;
+  --control-height: 44px;
 }

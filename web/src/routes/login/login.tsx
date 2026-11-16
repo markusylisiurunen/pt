@@ -31,27 +31,32 @@ const LoginRoute: React.FC = () => {
   }
 
   return (
-    <div className="login-root">
-      <div className="spacer" />
-      <form className="form" onSubmit={handleLogin}>
-        <h1>Kirjaudu sisään</h1>
+    <main className="page login">
+      <form className="card" onSubmit={handleLogin}>
+        <h1>Peetee</h1>
+        <p>Kirjaudu sisään salasanallasi.</p>
         <input
+          aria-label="Salasana"
+          autoComplete="current-password"
           autoFocus
-          type="password"
+          className="field"
           placeholder="Salasana"
+          type="password"
           value={password}
           onChange={(event) => {
             setPassword(event.target.value);
             setError("");
           }}
         />
-        {error ? <div className="error">{error}</div> : null}
-        <button type="submit" disabled={submitting}>
-          <span>Kirjaudu</span>
-          <ArrowRightIcon size={20} strokeWidth={2.25} />
+        {error ? <p className="error">{error}</p> : null}
+        <button className="cta" type="submit" disabled={submitting || password.length === 0}>
+          Kirjaudu
+          <span>
+            <ArrowRightIcon size={18} strokeWidth={2.25} />
+          </span>
         </button>
       </form>
-    </div>
+    </main>
   );
 };
 

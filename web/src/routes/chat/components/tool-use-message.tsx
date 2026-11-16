@@ -7,10 +7,8 @@ type ToolUseMessageProps = {
 const ToolUseMessage: React.FC<ToolUseMessageProps> = ({ name }) => {
   return (
     <div className="tool-use-message">
-      <div>
-        <ParenthesesIcon size={16} strokeWidth={2.25} />
-        <span>{name}</span>
-      </div>
+      <ParenthesesIcon size={14} strokeWidth={2.25} />
+      {name}
     </div>
   );
 };

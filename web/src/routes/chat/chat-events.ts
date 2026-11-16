@@ -42,11 +42,7 @@ function parseEventLine(line: string): AgentEvent | typeof DONE | null {
     throw new Error("Invalid chat event");
   }
 
-  if (
-    value.type === "content_delta" &&
-    "content" in value &&
-    typeof value.content === "string"
-  ) {
+  if (value.type === "content_delta" && "content" in value && typeof value.content === "string") {
     return { type: "content_delta", content: value.content };
   }
   if (value.type === "tool_use" && "name" in value && typeof value.name === "string") {
@@ -58,9 +54,7 @@ function parseEventLine(line: string): AgentEvent | typeof DONE | null {
   throw new Error("Invalid chat event");
 }
 
-async function* readAgentEvents(
-  stream: ReadableStream<Uint8Array>,
-): AsyncGenerator<AgentEvent> {
+async function* readAgentEvents(stream: ReadableStream<Uint8Array>): AsyncGenerator<AgentEvent> {
   const reader = stream.getReader();
   const decoder = new TextDecoder();
   let pending = "";
