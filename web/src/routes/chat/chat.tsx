@@ -203,7 +203,10 @@ const ChatRoute: React.FC = () => {
         </div>
       </div>
       {!historyReady && !isStreaming ? (
-        <p>Keskustelun lataus kesken. Jos lataus epäonnistui, päivitä sivu ennen jatkamista.</p>
+        <p>
+          Keskustelua ei ole vielä ladattu, joten viestejä ei voi lähettää. Jos keskustelu ei näy
+          hetken kuluttua, päivitä sivu.
+        </p>
       ) : null}
       <div className="composer card">
         <textarea

@@ -5,11 +5,11 @@ import { runToolWorker } from "./worker.ts";
 
 const executePythonTool = defineReadTool(
   "ExecutePython",
-  "Run Python for non-trivial arithmetic, nutritional calculations, and unit " +
-    "conversions. Print the results you need. Each call has a fresh interpreter and namespace, " +
-    "with the standard library only. No network or host application data access. " +
-    "Execution has a 30-second deadline and output is limited to 32 KiB. " +
-    "Use QueryDatabase for retrieval and SQL aggregations, then pass values into Python.",
+  "Run Python for non-trivial arithmetic, such as nutrition calculations and unit conversions. " +
+    "Print the results you need. Each call starts a fresh interpreter with only the standard " +
+    "library, and it cannot reach the network or the user's data. Fetch values with " +
+    "QueryDatabase first and write them into the code. A call fails if it runs longer than 30 " +
+    "seconds or prints more than 32 KiB.",
   z.object({ code: z.string().min(1).max(50000).describe("Python code to execute.") }).strict(),
   (input) =>
     runToolWorker<string>(

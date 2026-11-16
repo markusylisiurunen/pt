@@ -1,6 +1,6 @@
 # PT
 
-PT is a small, personal nutrition and training tracker. A Deno API stores local SQLite data and serves a React/Vite web app. The agent uses Anthropic, audio transcription uses Gemini, and food lookup queries the local Fineli dataset.
+PT is a small, personal nutrition and training tracker. A Deno API stores local SQLite data and serves a React/Vite web app. The chat agent runs on Sonnet 5.5 through Anthropic, audio transcription uses Gemini, and food lookup queries the local Fineli dataset.
 
 ## Principles
 
@@ -14,7 +14,7 @@ PT is a small, personal nutrition and training tracker. A Deno API stores local 
 
 - `main.ts`: Deno server entry point, SQLite initialization, authentication, API routing, and static file serving
 - `lib/agent/`: model orchestration and agent tools
-- `lib/db/`: SQLite schema and document migrations
+- `lib/db/`: SQLite schema, document migrations, and the agent's read-only query database
 - `lib/entities/`: shared domain types
 - `lib/routes/`: HTTP API handlers
 - `lib/prompts/`: model system prompts
@@ -27,7 +27,7 @@ PT is a small, personal nutrition and training tracker. A Deno API stores local 
 
 - Deno 2, TypeScript, React, and Vite
 - Use 2-space indentation, double quotes, semicolons, and a 100-character line width.
-- Run `deno task format`: Deno formats backend files; pinned Prettier formats frontend files and repository-owned Markdown. Markdown prose stays on one line per paragraph (`proseWrap: "never"`); do not wrap it manually.
+- Format with `deno task format`. It runs `deno fmt` on backend files and a pinned Prettier on frontend files and repository-owned Markdown. Prettier keeps each Markdown paragraph on one line (`proseWrap: "never"`), so do not wrap prose by hand.
 - Use lowercase snake_case backend filenames and lowercase frontend component filenames.
 - Types and components use `PascalCase`; values and functions use `camelCase`.
 - Validate external input at route boundaries, then keep internal code direct.
@@ -36,7 +36,7 @@ PT is a small, personal nutrition and training tracker. A Deno API stores local 
 
 ## Development
 
-Use Deno 2.9.8 or later. Query and Python tools use permission-restricted workers, enabled by `worker-options` in `deno.json`. Sonnet 5.5 runs the agent; Gemini is used only for transcription.
+Use Deno 2.9.8 or later. The agent's query and Python tools run in Deno workers with restricted permissions, which relies on the unstable `worker-options` feature enabled in `deno.json`.
 
 Install frontend dependencies once:
 
@@ -62,7 +62,7 @@ deno task format
 deno task check
 ```
 
-`deno task check` verifies formatting, linting, type checking (including tool workers), and tests, then lints and builds the frontend. Centrally managed skills and workflows are excluded from local formatting; change their sources in the agents repository.
+`deno task check` checks formatting, linting, type checking (including the tool workers), and tests, then lints and builds the frontend. Formatting skips the centrally managed files described under Agent setup.
 
 <!-- prettier-ignore-start -->
 

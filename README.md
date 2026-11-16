@@ -23,7 +23,7 @@ USERS={"markus":"password-one","another-user":"password-two"}
 
 Each password signs in as its corresponding user and stores data in `$DATA_FOLDER/<user>.db`. User names may contain letters, numbers, underscores, and hyphens, and must be unique regardless of case. Passwords must be non-empty, unique, and valid in an HTTP header. To move an existing installation to `USERS`, rename `data.db` to the chosen user's `<user>.db` before starting the app.
 
-Sonnet 5.5 powers the agent, with local SQLite queries and Python calculations. Gemini is used only for audio transcription. Query and Python tools run in permission-restricted workers; `deno.json` enables the worker-options feature required for isolation.
+The agent runs on Sonnet 5.5 and needs `ANTHROPIC_API_KEY`. It reads your data with SQLite queries and does calculations in Python, and both tools run in Deno workers with restricted permissions. `GEMINI_API_KEY` is needed only for audio transcription.
 
 ## Verification
 
