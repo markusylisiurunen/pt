@@ -15,7 +15,6 @@ interface UserRuntimeOptions {
   password: string | undefined;
   dataFolder: string;
   anthropicApiKey: string;
-  geminiApiKey: string;
 }
 
 function parseUsers(users: string | undefined, password: string | undefined) {
@@ -83,7 +82,7 @@ function createUserRuntimes(options: UserRuntimeOptions): Map<string, UserRuntim
         migrateDocuments(db);
         runtimes.set(user.password, {
           db,
-          agent: new Agent(options.anthropicApiKey, options.geminiApiKey, db),
+          agent: new Agent(options.anthropicApiKey, db),
           name: user.name,
           password: user.password,
         });

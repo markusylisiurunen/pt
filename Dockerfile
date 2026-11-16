@@ -6,10 +6,10 @@ RUN npm ci && \
     npm run build
 
 # build the deno app
-FROM denoland/deno:2.6.9
+FROM denoland/deno:2.9.8
 WORKDIR /app
 COPY . .
-RUN deno cache main.ts
+RUN deno cache main.ts lib/agent/query_process.ts lib/agent/python_process.ts
 COPY --from=web /app/dist ./web/dist
 COPY ./data/fineli/fineli.json ./data/fineli/fineli.json
 RUN printf '#!/bin/sh -eu\n\

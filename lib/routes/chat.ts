@@ -5,7 +5,7 @@ interface Route {
   (req: Request): Response | Promise<Response>;
 }
 
-type ChatAgent = Pick<Agent, "send">;
+type ChatAgent = Pick<Agent, "send" | "getHistory">;
 
 const bodySchema = z
   .object({
@@ -21,6 +21,9 @@ const bodySchema = z
 
 function chatRoute(agent: ChatAgent, id: string): Route {
   return async (req: Request) => {
+    if (req.method === "GET") {
+      return Response.json(agent.getHistory(id), { headers: { "cache-control": "no-store" } });
+    }
     if (req.method !== "POST") {
       return new Response("Method not allowed", { status: 405 });
     }
@@ -38,7 +41,8 @@ function chatRoute(agent: ChatAgent, id: string): Route {
     }
 
     const encoder = new TextEncoder();
-    let cancelled = false;
+    const abortController = new AbortController();
+    const signal = AbortSignal.any([req.signal, abortController.signal]);
     const stream = new ReadableStream({
       async start(controller) {
         try {
@@ -47,16 +51,17 @@ function chatRoute(agent: ChatAgent, id: string): Route {
               id,
               parsedBody.data.content,
               parsedBody.data.images,
+              signal,
             )
           ) {
-            if (cancelled) return;
+            if (signal.aborted) return;
             controller.enqueue(encoder.encode(`data: ${JSON.stringify(event)}\n\n`));
           }
-          if (cancelled) return;
+          if (signal.aborted) return;
           controller.enqueue(encoder.encode("data: [DONE]\n\n"));
           controller.close();
         } catch (error) {
-          if (cancelled) return;
+          if (signal.aborted) return;
           console.error("Chat error:", error);
           controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: "error" })}\n\n`));
           controller.enqueue(encoder.encode("data: [DONE]\n\n"));
@@ -64,7 +69,7 @@ function chatRoute(agent: ChatAgent, id: string): Route {
         }
       },
       cancel() {
-        cancelled = true;
+        abortController.abort();
       },
     });
     return new Response(stream, {

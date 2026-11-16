@@ -65,10 +65,7 @@ function configRoute(db: DatabaseSync): Route {
       protein: intake.protein,
     }));
     foodIntakeHistoryArray.sort((a, b) => a.date.localeCompare(b.date));
-    // normalize the weight history for the last 24 weeks
-    const weightHistoryMinDate = new Date(`${nowDateStr}T00:00:00Z`);
-    weightHistoryMinDate.setUTCDate(weightHistoryMinDate.getUTCDate() - 6 * 4 * 7);
-    const weightHistoryMinDateStr = weightHistoryMinDate.toISOString().slice(0, 10);
+    // keep the last weigh-in of each day; the client picks the period it shows
     const weightHistoryByDate = new Map<string, { date: string; weight: number }>();
     log.data.entries
       .filter((i): i is WeightLogEntry => i.kind === "weight")
@@ -77,7 +74,7 @@ function configRoute(db: DatabaseSync): Route {
         ts: i.ts,
         weight: i.weight,
       }))
-      .filter((i) => i.date >= weightHistoryMinDateStr && i.date <= nowDateStr)
+      .filter((i) => i.date <= nowDateStr)
       .sort((a, b) => new Date(a.ts).getTime() - new Date(b.ts).getTime())
       .forEach((i) => weightHistoryByDate.set(i.date, { date: i.date, weight: i.weight }));
     const weightHistory = [...weightHistoryByDate.values()].sort((a, b) =>

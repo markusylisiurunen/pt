@@ -5,34 +5,33 @@ type MemoriesProps = {
 };
 const Memories: React.FC<MemoriesProps> = ({ memories }) => {
   function renderMemory(memory: string) {
-    const dateRegex = /(\d{4}-\d{2}-\d{2}):\s?(.+)/;
-    const match = memory.match(dateRegex);
-    if (!match) {
-      return (
-        <React.Fragment key={memory}>
-          <span />
-          <span>{memory}</span>
-        </React.Fragment>
-      );
-    }
+    const match = memory.match(/(\d{4}-\d{2}-\d{2}):\s?(.+)/);
+    if (!match) return <li key={memory}>{memory}</li>;
+
     const [, date, content] = match;
-    type Opts = Intl.DateTimeFormatOptions;
-    const options: Opts = { year: "2-digit", month: "2-digit", day: "2-digit" };
-    const dateStr = new Date(date).toLocaleDateString("fi-FI", options);
+    const dateStr = new Date(date).toLocaleDateString("fi-FI", {
+      year: "2-digit",
+      month: "numeric",
+      day: "numeric",
+    });
     return (
-      <React.Fragment key={memory}>
-        <span>{dateStr}</span>
-        <span>{content}</span>
-      </React.Fragment>
+      <li key={memory}>
+        <span className="date">{dateStr}</span>
+        {content}
+      </li>
     );
   }
   return (
-    <div className="memories">
-      <div className="header">
-        <h3>Muistot</h3>
-      </div>
-      <div className="entries">{memories.map((memory) => renderMemory(memory))}</div>
-    </div>
+    <section className="card memories">
+      <header className="card-header">
+        <h2>Muistot</h2>
+      </header>
+      {memories.length === 0 ? (
+        <p className="empty">Ei vielä muistoja.</p>
+      ) : (
+        <ul className="rows">{memories.map((memory) => renderMemory(memory))}</ul>
+      )}
+    </section>
   );
 };
 

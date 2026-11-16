@@ -7,6 +7,12 @@ type ChatMessage =
   | { role: "user"; content: string; images: ImageAttachment[] }
   | { role: "assistant"; content: string }
   | { role: "tool-use"; name: string }
+  | {
+      role: "tool-result";
+      name: string;
+      status: "completed" | "failed" | "pending" | "not-executed";
+      content: string;
+    }
   | { role: "error" };
 
 type AgentEvent =
@@ -42,11 +48,7 @@ function parseEventLine(line: string): AgentEvent | typeof DONE | null {
     throw new Error("Invalid chat event");
   }
 
-  if (
-    value.type === "content_delta" &&
-    "content" in value &&
-    typeof value.content === "string"
-  ) {
+  if (value.type === "content_delta" && "content" in value && typeof value.content === "string") {
     return { type: "content_delta", content: value.content };
   }
   if (value.type === "tool_use" && "name" in value && typeof value.name === "string") {
@@ -58,9 +60,7 @@ function parseEventLine(line: string): AgentEvent | typeof DONE | null {
   throw new Error("Invalid chat event");
 }
 
-async function* readAgentEvents(
-  stream: ReadableStream<Uint8Array>,
-): AsyncGenerator<AgentEvent> {
+async function* readAgentEvents(stream: ReadableStream<Uint8Array>): AsyncGenerator<AgentEvent> {
   const reader = stream.getReader();
   const decoder = new TextDecoder();
   let pending = "";

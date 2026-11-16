@@ -1,26 +1,20 @@
 # PT
 
-PT is a small, personal nutrition and training tracker. A Deno API stores local SQLite data and
-serves a React/Vite web app. AI-assisted chat, transcription, and food lookup use Anthropic and
-Gemini APIs.
+PT is a small, personal nutrition and training tracker. A Deno API stores local SQLite data and serves a React/Vite web app. The chat agent runs on Sonnet 5.5 through Anthropic, audio transcription uses Gemini, and food lookup queries the local Fineli dataset.
 
 ## Principles
 
-- Keep the project stupid-simple. Prefer direct code and existing platform features over
-  abstractions, frameworks, or configuration layers.
-- This is a single-user personal tool. Do not add multi-user, multi-tenant, or enterprise behavior
-  unless explicitly requested.
-- Preserve existing local data and import/export compatibility when changing storage or document
-  formats.
+- Keep the project stupid-simple. Prefer direct code and existing platform features over abstractions, frameworks, or configuration layers.
+- This is a single-user personal tool. Do not add multi-user, multi-tenant, or enterprise behavior unless explicitly requested.
+- Preserve existing local data and import/export compatibility when changing storage or document formats.
 - Keep backend and frontend changes focused. Avoid broad rewrites or speculative cleanup.
 - Do not commit secrets, local databases, generated `web/dist/`, or dependency directories.
 
 ## Architecture
 
-- `main.ts`: Deno server entry point, SQLite initialization, authentication, API routing, and static
-  file serving
+- `main.ts`: Deno server entry point, SQLite initialization, authentication, API routing, and static file serving
 - `lib/agent/`: model orchestration and agent tools
-- `lib/db/`: SQLite schema and document migrations
+- `lib/db/`: SQLite schema, document migrations, and the agent's read-only query database
 - `lib/entities/`: shared domain types
 - `lib/routes/`: HTTP API handlers
 - `lib/prompts/`: model system prompts
@@ -33,7 +27,7 @@ Gemini APIs.
 
 - Deno 2, TypeScript, React, and Vite
 - Use 2-space indentation, double quotes, semicolons, and a 100-character line width.
-- Let `deno fmt` format backend files. Match the existing frontend formatting and ESLint rules.
+- Format with `deno task format`. It runs `deno fmt` on backend files and a pinned Prettier on frontend files and repository-owned Markdown. Prettier keeps each Markdown paragraph on one line (`proseWrap: "never"`), so do not wrap prose by hand.
 - Use lowercase snake_case backend filenames and lowercase frontend component filenames.
 - Types and components use `PascalCase`; values and functions use `camelCase`.
 - Validate external input at route boundaries, then keep internal code direct.
@@ -41,6 +35,8 @@ Gemini APIs.
 - Add dependencies only when the standard library or a small local implementation is not enough.
 
 ## Development
+
+Use Deno 2.9.8 or later. The agent's query and Python tools run each call in a separate Deno process with restricted permissions, and the process is killed if the call exceeds its time limit. These processes start with `--cached-only` and cannot download modules, so `deno task dev` and the Dockerfile cache both scripts and their imports before the server starts.
 
 Install frontend dependencies once:
 
@@ -55,20 +51,20 @@ deno task dev
 npm run dev --prefix web
 ```
 
-The Vite server proxies `/api` to Deno on port 8000. Copy `.env.example` to `.env` and set the
-credentials needed for the behavior being exercised.
+The Vite server proxies `/api` to Deno on port 8000. Copy `.env.example` to `.env` and set the credentials needed for the behavior being exercised.
 
 ## Verification
 
-Format backend files before running the full check:
+Format files before running the full check:
 
 ```sh
-deno fmt main.ts lib deno.json
+deno task format
 deno task check
 ```
 
-`deno task check` verifies Deno formatting, linting, and type checking, then lints and builds the
-frontend. There is no automated test suite.
+`deno task check` checks formatting, linting, type checking (including the tool process scripts), and tests, then lints and builds the frontend. Formatting skips the centrally managed files described under Agent setup.
+
+<!-- prettier-ignore-start -->
 
 <!-- agents:testing:start -->
 
@@ -87,6 +83,10 @@ This repository's own guidance may set a different bar for some areas. Follow it
 
 <!-- agents:testing:end -->
 
+<!-- prettier-ignore-end -->
+
+<!-- prettier-ignore-start -->
+
 <!-- agents:writing:start -->
 
 ## Writing
@@ -98,10 +98,11 @@ Use skill `clear-writing` for all text, including its part on writing for AI mod
 
 <!-- agents:writing:end -->
 
+<!-- prettier-ignore-end -->
+
 ## Documentation
 
-Keep `README.md`, `.env.example`, and this file aligned when changing setup, environment variables,
-architecture, verification, or releases. Keep the README concise.
+Keep `README.md`, `.env.example`, and this file aligned when changing setup, environment variables, architecture, verification, or releases. Keep the README concise.
 
 ## Releases
 
@@ -112,6 +113,8 @@ Releases are tag based. Tags matching `v*.*.*` publish the container image and `
 `.agents/managed.json` identifies centrally managed skills, prompts, configuration, and the marked sections in this file. Change their sources in the agents repository rather than editing managed content directly. Follow each skill's activation rules. Use `github-workflow` for Git and GitHub work.
 
 `.cowork/scripts/` and `.tau/scripts/provision` are repo-owned. Keep lifecycle hooks safe for dirty, non-default worktrees and preserve Git state. Do not add recurring schedules unless requested.
+
+<!-- prettier-ignore-start -->
 
 <!-- agents:subagents:start -->
 
@@ -135,3 +138,5 @@ For Claude subagents, prefer the Claude Code models, which use subscription limi
 
 Sonnet, Claude Code Sonnet, Claude Code Opus, Claude Code Haiku, and Opus may be selected as model overrides only when explicitly requested by the user or active instructions. Do not select them on your own. This does not prevent inheriting the parent model when no override is requested.
 <!-- agents:subagents:end -->
+
+<!-- prettier-ignore-end -->

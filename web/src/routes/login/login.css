@@ -1,67 +1,24 @@
-.login-root {
+.login {
+  justify-content: flex-end;
+  padding-block-end: var(--space-3);
+  min-height: calc(100lvh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+}
+.login form {
   display: flex;
   flex-direction: column;
-  height: calc(100lvh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
-  margin-inline: auto;
-  max-width: 640px;
-  padding: 12px;
-  width: 100%;
+  gap: var(--space-3);
+  padding: var(--space-6) var(--space-4) var(--space-4);
 }
-.login-root .spacer {
-  flex: 1 1 0px;
+.login h1 {
+  font-size: var(--text-title);
+  font-variation-settings: "ROND" 100;
+  margin: 0px var(--space-1);
 }
-.login-root .form {
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--color-border-accent);
-  display: flex;
-  flex-direction: column;
-  flex: 0 0 auto;
-  padding: 12px;
+.login p:not(.error) {
+  color: var(--color-text-secondary);
+  font-size: var(--text-label);
+  margin: calc(-1 * var(--space-2)) var(--space-1) var(--space-2);
 }
-.login-root h1 {
-  font-size: calc(24 / 16 * 1rem);
-  font-weight: 700;
-  margin-block: 0px 12px;
-}
-.login-root input {
-  appearance: none;
-  background: transparent;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--color-border);
-  color: var(--color-text);
-  height: 40px;
-  margin-block-end: 12px;
-  outline: none;
-  padding-block: 0px;
-  padding-inline: 12px;
-  width: 100%;
-}
-.login-root input::placeholder {
-  color: var(--color-text-placeholder);
-}
-.login-root .error {
-  color: var(--color-border-accent);
-  font-size: calc(14 / 16 * 1rem);
-  margin-block: -4px 12px;
-}
-.login-root button {
-  align-items: center;
-  appearance: none;
-  background: var(--color-bg-btn-primary);
-  border-radius: var(--radius-md);
-  border: none;
-  color: var(--color-text-on-bg-btn-primary);
-  cursor: pointer;
-  display: flex;
-  font-weight: 500;
-  height: 40px;
-  justify-content: space-between;
-  outline: none;
-  padding-block: 0px;
-  padding-inline: 12px;
-  width: 100%;
-}
-.login-root button:disabled {
-  cursor: default;
-  opacity: 0.5;
+.login .error {
+  margin-inline: var(--space-1);
 }

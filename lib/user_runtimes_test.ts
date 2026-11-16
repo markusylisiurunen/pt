@@ -10,7 +10,6 @@ Deno.test("routes passwords to isolated user databases", async () => {
     password: undefined,
     dataFolder,
     anthropicApiKey: "",
-    geminiApiKey: "",
   });
 
   try {
@@ -52,7 +51,6 @@ Deno.test("keeps PASSWORD data in the legacy data.db", async () => {
     password: "legacy-password",
     dataFolder,
     anthropicApiKey: "",
-    geminiApiKey: "",
   };
 
   try {
@@ -93,7 +91,6 @@ Deno.test("rejects invalid user mappings before opening databases", async () => 
     password: undefined,
     dataFolder,
     anthropicApiKey: "",
-    geminiApiKey: "",
   };
 
   try {

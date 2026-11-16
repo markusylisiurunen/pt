@@ -8,9 +8,9 @@ type UserMessageProps = {
 const UserMessage: React.FC<UserMessageProps> = ({ content, images }) => {
   return (
     <div className="user-message">
-      {content.trim() === "" ? null : <p>{content}</p>}
+      {content.trim() === "" ? null : <p className="bubble">{content}</p>}
       {images.length > 0 ? (
-        <div>
+        <div className="images">
           {images.map((image, index) => (
             <img key={index} src={image.base64Data} alt={`Image attachment ${index + 1}`} />
           ))}
