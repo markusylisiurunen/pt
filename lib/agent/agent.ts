@@ -1,7 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { DatabaseSync } from "node:sqlite";
-import { readDocumentContentBySlug } from "../db/docs.ts";
-import { Config } from "../entities/config.ts";
+import { readAgentDocuments } from "../db/agent.ts";
 import { systemPrompt } from "../prompts/system.ts";
 import {
   getDateAtTimeZone,
@@ -9,288 +8,284 @@ import {
   getTimeZoneOffsetInMinutes,
   getWeekdayAtTimeZone,
 } from "../util/datetime.ts";
-import {
-  appendFoodLogEntryTool,
-  executeAppendFoodLogEntryTool,
-} from "./tool_append_food_log_entry.ts";
-import {
-  appendWeightLogEntryTool,
-  executeAppendWeightLogEntryTool,
-} from "./tool_append_weight_log_entry.ts";
-import { executeExecutePythonTool, executePythonTool } from "./tool_execute_python.ts";
-import { executeReadDocumentTool, readDocumentTool } from "./tool_read_document.ts";
-import { executeRemoveLogEntryTool, removeLogEntryTool } from "./tool_remove_log_entry.ts";
-import { executeSaveMemoryTool, saveMemoryTool } from "./tool_save_memory.ts";
-import { executeSearchFineliTool, searchFineliTool } from "./tool_search_fineli.ts";
-import {
-  executeUpsertKnownIngredientTool,
-  upsertKnownIngredientTool,
-} from "./tool_upsert_known_ingredient.ts";
+import { type AgentTool, createTools } from "./tools.ts";
 
-type ContentDeltaEvent = {
-  type: "content_delta";
-  content: string;
-};
+type AgentEvent =
+  | { type: "content_delta"; content: string }
+  | { type: "tool_use"; name: string };
 
-type ToolUseEvent = {
-  type: "tool_use";
-  name: string;
-};
-
-type AgentEvent = ContentDeltaEvent | ToolUseEvent;
+type ChatMessage = Anthropic.Beta.BetaMessageParam;
 
 class Agent {
-  private id: string;
-
-  private anthropicApiKey: string;
-  private geminiApiKey: string;
-
+  private id = crypto.randomUUID();
+  private model = "claude-sonnet-5-5";
+  private maxTokens: number | undefined;
   private client: Anthropic;
   private db: DatabaseSync;
+  private tools: AgentTool[];
+  private activeChats = new Set<string>();
 
-  private largeModel: Anthropic.Model = "claude-sonnet-5-5";
-  private smallModel: Anthropic.Model = "claude-haiku-5-5";
-
-  constructor(anthropicApiKey: string, geminiApiKey: string, db: DatabaseSync) {
-    this.id = crypto.randomUUID();
-    this.anthropicApiKey = anthropicApiKey;
-    this.geminiApiKey = geminiApiKey;
-    this.client = new Anthropic({
-      apiKey: anthropicApiKey,
-    });
+  constructor(anthropicApiKey: string, db: DatabaseSync, client?: Anthropic) {
+    this.client = client ?? new Anthropic({ apiKey: anthropicApiKey });
     this.db = db;
+    this.tools = createTools(db);
   }
 
   async *send(
     id: string,
     content: string,
     images: { mimeType: "image/jpeg" | "image/png"; base64Data: string }[],
+    signal?: AbortSignal,
   ): AsyncGenerator<AgentEvent> {
-    const messages: Anthropic.Beta.BetaMessageParam[] = this.loadChatHistory(id);
-    messages.push({
-      role: "user",
-      content: [
-        { type: "text", text: this.getSystemReminder() + "\n\n" },
-        { type: "text", text: content },
-        ...images.map((image) => ({
-          type: "image" as const,
-          source: {
-            type: "base64" as const,
-            media_type: image.mimeType,
-            data: image.base64Data,
-          },
-        })),
-      ],
-    });
-
-    for (let turn = 0; turn < 16; turn++) {
-      this.refreshCacheBreakpoints(messages);
-      const stream = this.client.beta.messages.stream({
-        max_tokens: 16384,
-        messages: messages,
-        metadata: { user_id: this.id },
-        model: this.largeModel,
-        system: [
-          {
-            type: "text",
-            text: this.getSystemPrompt(),
-            cache_control: { type: "ephemeral" },
-          },
+    if (this.activeChats.has(id)) throw new Error("This chat already has a response in progress.");
+    this.activeChats.add(id);
+    const messages: ChatMessage[] = [];
+    try {
+      messages.push(...this.loadChatHistory(id));
+      signal?.throwIfAborted();
+      if (this.maxTokens === undefined) {
+        const model = await this.client.models.retrieve(this.model, {}, { signal });
+        if (!model.max_tokens || model.max_tokens <= 0) {
+          throw new Error("Sonnet's maximum output allowance is unavailable.");
+        }
+        this.maxTokens = model.max_tokens;
+      }
+      messages.push({
+        role: "user",
+        content: [
+          ...(content ? [{ type: "text" as const, text: content }] : []),
+          ...images.map((image) => ({
+            type: "image" as const,
+            source: {
+              type: "base64" as const,
+              media_type: image.mimeType,
+              data: image.base64Data,
+            },
+          })),
         ],
-        thinking: { type: "adaptive" },
-        output_config: { effort: "low" },
-        tools: this.getTools(),
       });
+      this.saveChatHistory(id, messages);
 
-      for await (const chunk of stream) {
-        if (chunk.type === "content_block_delta" && chunk.delta.type === "text_delta") {
-          yield { type: "content_delta", content: chunk.delta.text };
+      for (let round = 0; round < 256; round++) {
+        signal?.throwIfAborted();
+        this.refreshCacheBreakpoints(messages);
+        const stream = this.client.beta.messages.stream({
+          max_tokens: this.maxTokens,
+          messages: [
+            ...messages,
+            {
+              role: "user",
+              content: `<current_context>\n${this.getCurrentContext()}\n</current_context>`,
+            },
+          ],
+          metadata: { user_id: this.id },
+          model: this.model,
+          system: [{ type: "text", text: systemPrompt, cache_control: { type: "ephemeral" } }],
+          thinking: { type: "adaptive" },
+          output_config: { effort: "medium" },
+          tools: this.tools.map((tool) => tool.definition),
+        }, { signal });
+
+        let message;
+        try {
+          for await (const chunk of stream) {
+            if (chunk.type === "content_block_delta" && chunk.delta.type === "text_delta") {
+              yield { type: "content_delta", content: chunk.delta.text };
+            }
+          }
+          message = await stream.finalMessage();
+        } finally {
+          stream.abort();
+        }
+
+        if (
+          message.stop_reason === "max_tokens" ||
+          message.stop_reason === "model_context_window_exceeded"
+        ) {
+          messages.push({
+            role: "assistant",
+            content: message.content.filter((block) => block.type !== "tool_use"),
+          });
+          const notice = message.stop_reason === "max_tokens"
+            ? "This response reached Sonnet's output limit and is incomplete. " +
+              "No tools from the incomplete response were executed. Earlier saved changes remain."
+            : "This conversation reached Sonnet's context limit. Start a new chat to continue. " +
+              "Earlier saved changes remain.";
+          yield this.finishWithNotice(id, messages, notice);
+          return;
+        }
+
+        messages.push({ role: "assistant", content: message.content });
+        const blocks = message.content.filter((block) => block.type === "tool_use");
+        if (blocks.length === 0) {
+          this.saveChatHistory(id, messages);
+          if (message.stop_reason === "pause_turn") continue;
+          return;
+        }
+
+        const results: Anthropic.Beta.BetaToolResultBlockParam[] = blocks.map((block) => ({
+          type: "tool_result",
+          tool_use_id: block.id,
+          content: "Tool was not executed: the turn was interrupted before execution.",
+          is_error: true,
+        }));
+        messages.push({ role: "user", content: results });
+        this.saveChatHistory(id, messages);
+
+        for (const [index, block] of blocks.entries()) {
+          signal?.throwIfAborted();
+          yield { type: "tool_use", name: block.name };
+          signal?.throwIfAborted();
+          const tool = this.tools.find((tool) => tool.definition.name === block.name);
+          try {
+            if (!tool) throw new Error(`Unknown tool: ${block.name}`);
+            if (tool.mutates) {
+              this.db.exec("BEGIN IMMEDIATE");
+              try {
+                const result = tool.execute(block.input);
+                if (typeof result !== "string") {
+                  throw new Error("Mutation tools must be synchronous.");
+                }
+                results[index] = { type: "tool_result", tool_use_id: block.id, content: result };
+                this.saveChatHistory(id, messages);
+                this.db.exec("COMMIT");
+              } catch (error) {
+                this.db.exec("ROLLBACK");
+                throw error;
+              }
+            } else {
+              results[index] = {
+                type: "tool_result",
+                tool_use_id: block.id,
+                content: await tool.execute(block.input),
+              };
+              this.saveChatHistory(id, messages);
+            }
+          } catch (error) {
+            console.error(`Tool ${block.name} failed:`, error);
+            results[index] = {
+              type: "tool_result",
+              tool_use_id: block.id,
+              content: `Tool failed: ${error instanceof Error ? error.message : "Unknown error"}`,
+              is_error: true,
+            };
+            this.saveChatHistory(id, messages);
+          }
         }
       }
-
-      const message = await stream.finalMessage();
-      messages.push({ role: "assistant", content: message.content });
-
-      const toolUseBlocks = message.content.filter((block) => block.type === "tool_use");
-      if (toolUseBlocks.length === 0) {
-        this.saveChatHistory(id, messages);
+      yield this.finishWithNotice(
+        id,
+        messages,
+        "Stopped after 256 model rounds. Earlier saved changes remain. " +
+          "Send another message to continue the unfinished work.",
+      );
+    } catch (error) {
+      if (
+        error instanceof Anthropic.BadRequestError &&
+        /context window|prompt is too long|input is too long|too many input tokens/i.test(
+          error.message,
+        )
+      ) {
+        yield this.finishWithNotice(
+          id,
+          messages,
+          "This conversation exceeds Sonnet's context limit. Start a new chat to continue. " +
+            "Earlier saved changes remain.",
+        );
         return;
       }
-
-      for (const block of toolUseBlocks) {
-        yield { type: "tool_use", name: block.name };
-      }
-
-      const results: Anthropic.Beta.BetaToolResultBlockParam[] = [];
-      for (const block of toolUseBlocks) {
-        try {
-          results.push({
-            type: "tool_result",
-            tool_use_id: block.id,
-            content: await this.callTool(block.name, block.input),
-          });
-        } catch (error) {
-          console.error(`Tool ${block.name} failed:`, error);
-          results.push({
-            type: "tool_result",
-            tool_use_id: block.id,
-            content: `Tool failed: ${error instanceof Error ? error.message : "Unknown error"}`,
-            is_error: true,
-          });
-        }
-      }
-      messages.push({ role: "user", content: results });
-      this.saveChatHistory(id, messages);
+      throw error;
+    } finally {
+      this.activeChats.delete(id);
     }
-
-    throw new Error("Agent exceeded the maximum number of tool rounds");
   }
 
-  private loadChatHistory(chatId: string): Anthropic.Beta.BetaMessageParam[] {
-    const result = this.db.prepare(`SELECT messages FROM chats WHERE id = ?`).get(chatId);
-    if (!result) {
-      return [];
+  private finishWithNotice(id: string, messages: ChatMessage[], notice: string): AgentEvent {
+    const text = "\n\n" + notice;
+    const last = messages.at(-1);
+    if (last?.role === "assistant" && Array.isArray(last.content)) {
+      last.content.push({ type: "text", text });
+    } else {
+      messages.push({ role: "assistant", content: [{ type: "text", text }] });
     }
-
-    const parsed = result as { messages: string };
-    return JSON.parse(parsed.messages);
+    this.saveChatHistory(id, messages);
+    return { type: "content_delta", content: text };
   }
 
-  private saveChatHistory(chatId: string, messages: Anthropic.Beta.BetaMessageParam[]): void {
-    const messagesJson = JSON.stringify(messages);
+  private loadChatHistory(chatId: string): ChatMessage[] {
+    const row = this.db.prepare("SELECT messages FROM chats WHERE id = ?").get(chatId) as
+      | { messages: string }
+      | undefined;
+    return row ? JSON.parse(row.messages) : [];
+  }
+
+  private saveChatHistory(chatId: string, messages: ChatMessage[]): void {
+    const json = JSON.stringify(messages);
     const now = new Date().toISOString();
-
-    this.db
-      .prepare(
-        `
-        INSERT INTO chats (id, messages, created_at, updated_at) VALUES (?, ?, ?, ?)
-        ON CONFLICT (id) DO UPDATE SET messages = ?, updated_at = ?
-        `,
-      )
-      .run(chatId, messagesJson, now, now, messagesJson, now);
+    this.db.prepare(`
+      INSERT INTO chats (id, messages, created_at, updated_at) VALUES (?, ?, ?, ?)
+      ON CONFLICT (id) DO UPDATE SET messages = excluded.messages, updated_at = excluded.updated_at
+    `).run(chatId, json, now, now);
   }
 
-  private getSystemPrompt(): string {
-    const now = new Date().toISOString();
-    return systemPrompt
-      .replace("{{current_date}}", getDateAtTimeZone(now, "Europe/Helsinki"))
-      .replace("{{current_time_zone}}", "Europe/Helsinki")
-      .replace("{{current_time_zone_offset}}", "" + getTimeZoneOffsetInMinutes("Europe/Helsinki"))
-      .replace("{{current_weekday}}", getWeekdayAtTimeZone(now, "Europe/Helsinki"))
-      .replace("{{user_info}}", this.getUserInfo())
-      .replace("{{user_memories}}", this.getUserMemories());
-  }
-
-  private getSystemReminder(): string {
+  private getCurrentContext(): string {
     const now = new Date();
-    return `<system_reminder>
-Current time: ${getTimeAtTimeZone(now.toISOString(), "Europe/Helsinki")}
-</system_reminder>`;
+    const date = getDateAtTimeZone(now, "Europe/Helsinki");
+    const { config, log } = readAgentDocuments(this.db);
+    const today = log.entries.filter((entry) =>
+      entry.kind === "food" && getDateAtTimeZone(entry.ts, "Europe/Helsinki") === date
+    );
+    const latestWeight =
+      log.entries.filter((entry) =>
+        entry.kind === "weight" && new Date(entry.ts).getTime() <= now.getTime()
+      ).sort((a, b) => new Date(b.ts).getTime() - new Date(a.ts).getTime())[0];
+    return JSON.stringify({
+      date,
+      time: getTimeAtTimeZone(now, "Europe/Helsinki"),
+      timeZone: "Europe/Helsinki",
+      timeZoneOffsetMinutes: Math.round(getTimeZoneOffsetInMinutes("Europe/Helsinki", now)),
+      weekday: getWeekdayAtTimeZone(now, "Europe/Helsinki"),
+      profile: config.userInfo,
+      goals: {
+        dailyKcal: config.targetDailyIntakeCalories,
+        dailyProtein: config.targetDailyIntakeProtein,
+        targetWeightKg: config.targetWeightValue,
+        targetWeightDate: config.targetWeightDate,
+      },
+      memories: config.memoryEntries,
+      today: {
+        entries: today.length,
+        kcal: today.reduce((sum, entry) => sum + (entry.kind === "food" ? entry.kcal ?? 0 : 0), 0),
+        protein: today.reduce(
+          (sum, entry) => sum + (entry.kind === "food" ? entry.protein ?? 0 : 0),
+          0,
+        ),
+        entriesWithMissingNutrition: today.filter((entry) =>
+          entry.kind === "food" && (entry.kcal === undefined || entry.protein === undefined)
+        ).length,
+      },
+      latestWeight: latestWeight ?? null,
+    });
   }
 
-  private getUserInfo(): string {
-    const content = readDocumentContentBySlug(this.db, "config");
-    const config = Config.safeParse(JSON.parse(content || "{}"));
-    if (config.success && config.data.userInfo) {
-      return config.data.userInfo;
-    }
-    return "No user information is available.";
-  }
-
-  private getUserMemories(): string {
-    const content = readDocumentContentBySlug(this.db, "config");
-    const config = Config.safeParse(JSON.parse(content || "{}"));
-    if (config.success && config.data.memoryEntries.length > 0) {
-      return config.data.memoryEntries.map((entry) => "- " + entry).join("\n");
-    }
-    return "No user memories are available.";
-  }
-
-  private refreshCacheBreakpoints(messages: Anthropic.Beta.BetaMessageParam[]) {
-    // reset cache control breakpoints
-    for (let i = 0; i < messages.length; i++) {
-      if (messages[i].role !== "user") continue;
-      const content = messages[i].content;
-      if (!Array.isArray(content)) continue;
-      for (let u = 0; u < content.length; u++) {
-        if ((content[u] as Anthropic.Beta.BetaContentBlockParam).type === "text") {
-          (content[u] as Anthropic.Beta.BetaTextBlockParam).cache_control = undefined;
-        }
-        if (
-          (content[u] as Anthropic.Beta.BetaContentBlockParam).type === "tool_result"
-        ) {
-          (content[u] as Anthropic.Beta.BetaToolResultBlockParam).cache_control = undefined;
-        }
-      }
-    }
-
-    // set the cache breakpoint for the last user message
-    for (let i = messages.length - 1; i >= 0; i--) {
-      if (messages[i].role !== "user") continue;
-      const content = messages[i].content;
-      if (!Array.isArray(content)) continue;
-      let found = false;
-      for (let u = content.length - 1; u >= 0; u--) {
-        if (found) break;
-        if ((content[u] as Anthropic.Beta.BetaContentBlockParam).type === "text") {
-          found = true;
-          (content[u] as Anthropic.Beta.BetaTextBlockParam).cache_control = {
-            type: "ephemeral",
-          };
+  private refreshCacheBreakpoints(messages: ChatMessage[]) {
+    for (const message of messages) {
+      if (message.role !== "user" || !Array.isArray(message.content)) continue;
+      for (const block of message.content) {
+        if (block.type === "text" || block.type === "tool_result" || block.type === "image") {
+          delete block.cache_control;
         }
       }
-      if (found) break;
     }
-
-    // set the cache breakpoint for the last tool result
-    for (let i = messages.length - 1; i >= 0; i--) {
-      if (messages[i].role !== "user") continue;
-      const content = messages[i].content;
-      if (!Array.isArray(content)) continue;
-      let found = false;
-      for (let u = content.length - 1; u >= 0; u--) {
-        if (found) break;
-        if (
-          (content[u] as Anthropic.Beta.BetaContentBlockParam).type === "tool_result"
-        ) {
-          found = true;
-          (content[u] as Anthropic.Beta.BetaToolResultBlockParam).cache_control = {
-            type: "ephemeral",
-          };
-        }
+    const last = messages.at(-1);
+    if (last?.role === "user" && Array.isArray(last.content)) {
+      const block = last.content.at(-1);
+      if (
+        block && (block.type === "text" || block.type === "tool_result" || block.type === "image")
+      ) {
+        block.cache_control = { type: "ephemeral" };
       }
-      if (found) break;
     }
-  }
-
-  private getTools(): Anthropic.Beta.BetaTool[] {
-    return [
-      appendFoodLogEntryTool(),
-      appendWeightLogEntryTool(),
-      executePythonTool(),
-      readDocumentTool(),
-      removeLogEntryTool(),
-      saveMemoryTool(),
-      searchFineliTool(),
-      upsertKnownIngredientTool(),
-    ];
-  }
-
-  private async callTool(name: string, input: unknown): Promise<string> {
-    const tools: Record<string, () => string | Promise<string>> = {
-      [appendFoodLogEntryTool().name]: () => executeAppendFoodLogEntryTool(this.db, input),
-      [appendWeightLogEntryTool().name]: () => executeAppendWeightLogEntryTool(this.db, input),
-      [executePythonTool().name]: () => executeExecutePythonTool(input),
-      [readDocumentTool().name]: () => executeReadDocumentTool(this.db, input),
-      [removeLogEntryTool().name]: () => executeRemoveLogEntryTool(this.db, input),
-      [saveMemoryTool().name]: () => executeSaveMemoryTool(this.db, input),
-      [searchFineliTool().name]: () => executeSearchFineliTool(this.geminiApiKey, input),
-      [upsertKnownIngredientTool().name]: () => executeUpsertKnownIngredientTool(this.db, input),
-    };
-    if (name in tools) {
-      return await tools[name]();
-    }
-    throw new Error(`Unknown tool: ${name}`);
   }
 }
 

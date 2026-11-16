@@ -39,6 +39,8 @@ function chatRoute(agent: ChatAgent, id: string): Route {
 
     const encoder = new TextEncoder();
     let cancelled = false;
+    const abortController = new AbortController();
+    const signal = AbortSignal.any([req.signal, abortController.signal]);
     const stream = new ReadableStream({
       async start(controller) {
         try {
@@ -47,6 +49,7 @@ function chatRoute(agent: ChatAgent, id: string): Route {
               id,
               parsedBody.data.content,
               parsedBody.data.images,
+              signal,
             )
           ) {
             if (cancelled) return;
@@ -65,6 +68,7 @@ function chatRoute(agent: ChatAgent, id: string): Route {
       },
       cancel() {
         cancelled = true;
+        abortController.abort();
       },
     });
     return new Response(stream, {

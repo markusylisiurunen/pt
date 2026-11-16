@@ -1,11 +1,10 @@
 # PT
 
-PT is a small, personal nutrition and training tracker with AI-assisted food logging. It runs as a
-Deno API backed by SQLite and a React web app.
+PT is a small, personal nutrition and training tracker with AI-assisted food logging. It runs as a Deno API backed by SQLite and a React web app.
 
 ## Local development
 
-Requirements: Deno 2 and Node.js 24.
+Requirements: Deno 2.9.8 or later and Node.js 24.
 
 ```sh
 cp .env.example .env
@@ -14,27 +13,22 @@ npm run build --prefix web
 deno task dev
 ```
 
-Open <http://localhost:8000> and sign in with a configured password. For frontend hot reload, run
-`npm run dev --prefix web` and open the Vite URL instead.
+Open <http://localhost:8000> and sign in with a configured password. For frontend hot reload, run `npm run dev --prefix web` and open the Vite URL instead.
 
-With `PASSWORD`, the app stores its SQLite database at `$DATA_FOLDER/data.db`, defaulting to the
-repository root. To host multiple isolated users, replace `PASSWORD` with a JSON mapping in `USERS`:
+With `PASSWORD`, the app stores its SQLite database at `$DATA_FOLDER/data.db`, defaulting to the repository root. To host multiple isolated users, replace `PASSWORD` with a JSON mapping in `USERS`:
 
 ```env
 USERS={"markus":"password-one","another-user":"password-two"}
 ```
 
-Each password signs in as its corresponding user and stores data in `$DATA_FOLDER/<user>.db`. User
-names may contain letters, numbers, underscores, and hyphens, and must be unique regardless of case.
-Passwords must be non-empty, unique, and valid in an HTTP header. To move an existing installation
-to `USERS`, rename `data.db` to the chosen user's `<user>.db` before starting the app.
+Each password signs in as its corresponding user and stores data in `$DATA_FOLDER/<user>.db`. User names may contain letters, numbers, underscores, and hyphens, and must be unique regardless of case. Passwords must be non-empty, unique, and valid in an HTTP header. To move an existing installation to `USERS`, rename `data.db` to the chosen user's `<user>.db` before starting the app.
 
-Anthropic powers chat, while Gemini is used for transcription and as the agent's secondary model.
+Sonnet 5.5 powers the agent, with local SQLite queries and Python calculations. Gemini is used only for audio transcription. Query and Python tools run in permission-restricted workers; `deno.json` enables the worker-options feature required for isolation.
 
 ## Verification
 
 ```sh
-deno fmt main.ts lib deno.json
+deno task format
 deno task check
 ```
 

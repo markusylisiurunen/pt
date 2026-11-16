@@ -5,10 +5,18 @@ const LogEntry = z.object({
   ts: z.string().datetime(),
 });
 
+const FoodLogIngredient = z.object({
+  description: z.string().min(1),
+  kcal: z.number().min(0),
+  protein: z.number().min(0),
+});
+type FoodLogIngredient = z.infer<typeof FoodLogIngredient>;
+
 const FoodLogEntry = LogEntry.extend({
   kind: z.literal("food"),
   description: z.string().min(1),
   notes: z.string().optional(),
+  ingredients: z.array(FoodLogIngredient).min(1).optional(),
   kcal: z.number().min(0).optional(),
   protein: z.number().min(0).optional(),
   carbs: z.number().min(0).optional(),
@@ -27,4 +35,4 @@ const Log = z.object({
 });
 type Log = z.infer<typeof Log>;
 
-export { FoodLogEntry, Log, WeightLogEntry };
+export { FoodLogEntry, FoodLogIngredient, Log, WeightLogEntry };

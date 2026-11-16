@@ -17,7 +17,6 @@ const runtimes = createUserRuntimes({
   password: Deno.env.get("PASSWORD"),
   dataFolder: Deno.env.get("DATA_FOLDER") || ".",
   anthropicApiKey: ANTHROPIC_API_KEY,
-  geminiApiKey: GEMINI_API_KEY,
 });
 
 addEventListener("unload", () => closeUserRuntimes(runtimes));

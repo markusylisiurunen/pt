@@ -1,0 +1,6 @@
+.agents/
+.claude/
+.cowork/
+.tau/
+web/dist/
+web/package-lock.json
