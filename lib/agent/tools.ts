@@ -1,36 +1,14 @@
-import Anthropic from "@anthropic-ai/sdk";
 import { DatabaseSync } from "node:sqlite";
 import z from "zod";
-import { readDocumentContentBySlug, writeDocumentContentBySlug } from "../db/docs.ts";
+import { readConfig, readIngredients, readLog } from "../db/agent.ts";
+import { writeDocumentContentBySlug } from "../db/docs.ts";
 import { Config } from "../entities/config.ts";
-import { KnownIngredients } from "../entities/ingredient.ts";
+import { Ingredient } from "../entities/ingredient.ts";
 import { FoodLogEntry, FoodLogIngredient, Log, WeightLogEntry } from "../entities/log.ts";
 import { getDateAtTimeZone, getIsoAtStartOfDayAtTimeZone } from "../util/datetime.ts";
-import { executeExecutePythonTool, executePythonTool } from "./tool_execute_python.ts";
-import { executeQueryDatabaseTool, queryDatabaseTool } from "./tool_query_database.ts";
-
-interface AgentTool {
-  mutates: boolean;
-  definition: Anthropic.Tool;
-  execute: (input: unknown) => string | Promise<string>;
-}
-
-function defineTool<T extends z.ZodType>(
-  name: string,
-  description: string,
-  schema: T,
-  execute: (input: z.output<T>) => unknown,
-): AgentTool {
-  return {
-    mutates: true,
-    definition: {
-      name,
-      description,
-      input_schema: z.toJSONSchema(schema, { io: "input" }) as Anthropic.Tool.InputSchema,
-    },
-    execute: (input) => JSON.stringify(execute(schema.parse(input))),
-  };
-}
+import { executePythonTool } from "./tool_execute_python.ts";
+import { queryDatabaseTool } from "./tool_query_database.ts";
+import { type AgentTool, defineMutationTool } from "./tool.ts";
 
 const dateSchema = z.iso.date().optional().describe(
   "Helsinki calendar date, YYYY-MM-DD. Omit unless the user specifies a date. " +
@@ -53,18 +31,12 @@ const foodSchema = z.object({
 );
 
 function foodValues(input: z.infer<typeof foodSchema>) {
-  const values = {
+  return {
     description: input.description,
     notes: input.notes,
     ingredients: input.ingredients,
     kcal: input.kcal,
     protein: input.protein,
-  };
-  if (!input.ingredients) return values;
-  return {
-    ...values,
-    kcal: Math.round(input.ingredients.reduce((sum, item) => sum + item.kcal, 0) * 1e6) / 1e6,
-    protein: Math.round(input.ingredients.reduce((sum, item) => sum + item.protein, 0) * 1e6) / 1e6,
   };
 }
 
@@ -72,21 +44,9 @@ function entryTimestamp(date: string | undefined, previous = new Date().toISOStr
   return date ? getIsoAtStartOfDayAtTimeZone(date, "Europe/Helsinki") : previous;
 }
 
-function readLog(db: DatabaseSync) {
-  return Log.parse(JSON.parse(readDocumentContentBySlug(db, "log")));
-}
-
 function saveLog(db: DatabaseSync, log: Log) {
   log.entries.sort((a, b) => new Date(a.ts).getTime() - new Date(b.ts).getTime());
   writeDocumentContentBySlug(db, "log", JSON.stringify(log));
-}
-
-function readConfig(db: DatabaseSync) {
-  return Config.parse(JSON.parse(readDocumentContentBySlug(db, "config")));
-}
-
-function readIngredients(db: DatabaseSync) {
-  return KnownIngredients.parse(JSON.parse(readDocumentContentBySlug(db, "known-ingredients")));
 }
 
 function datedMemory(memory: string) {
@@ -95,17 +55,9 @@ function datedMemory(memory: string) {
 
 function createTools(db: DatabaseSync): AgentTool[] {
   return [
-    {
-      mutates: false,
-      definition: queryDatabaseTool(),
-      execute: (input) => executeQueryDatabaseTool(db, input),
-    },
-    {
-      mutates: false,
-      definition: executePythonTool(),
-      execute: executeExecutePythonTool,
-    },
-    defineTool(
+    queryDatabaseTool(db),
+    executePythonTool,
+    defineMutationTool(
       "AppendFoodLogEntry",
       "Log food consumption. Prefer saved ingredients, then Fineli, then reasonable estimates. " +
         "Usually record a meal as one entry. Return a concise summary of the saved nutrition.",
@@ -123,11 +75,12 @@ function createTools(db: DatabaseSync): AgentTool[] {
         return entry;
       },
     ),
-    defineTool(
+    defineMutationTool(
       "UpdateFoodLogEntry",
       "Replace a food entry's description, notes, ingredients, calories, and protein. " +
         "Read the current entry first and provide the complete replacement. " +
-        "Omitted notes and ingredients are cleared. The ID and timestamp are preserved unless a date is given.",
+        "Omitted notes and ingredients are cleared, as are old carbohydrate and fat values. " +
+        "The ID and timestamp are preserved unless a date is given.",
       foodSchema.safeExtend({ id: z.string().uuid() }),
       (input) => {
         const log = readLog(db);
@@ -139,8 +92,8 @@ function createTools(db: DatabaseSync): AgentTool[] {
         const entry = FoodLogEntry.parse({
           ...previous,
           ...foodValues(input),
-          notes: input.notes,
-          ingredients: input.ingredients,
+          carbs: undefined,
+          fat: undefined,
           ts: entryTimestamp(input.date, previous.ts),
         });
         log.entries[index] = entry;
@@ -148,7 +101,7 @@ function createTools(db: DatabaseSync): AgentTool[] {
         return entry;
       },
     ),
-    defineTool(
+    defineMutationTool(
       "AppendWeightLogEntry",
       "Log a weight measurement in kilograms.",
       z.object({ date: dateSchema, weight: z.number().positive() }).strict(),
@@ -165,7 +118,7 @@ function createTools(db: DatabaseSync): AgentTool[] {
         return entry;
       },
     ),
-    defineTool(
+    defineMutationTool(
       "UpdateWeightLogEntry",
       "Correct a weight measurement in kilograms. Preserve its timestamp unless a date is given.",
       z.object({ id: z.string().uuid(), date: dateSchema, weight: z.number().positive() }).strict(),
@@ -185,7 +138,7 @@ function createTools(db: DatabaseSync): AgentTool[] {
         return entry;
       },
     ),
-    defineTool(
+    defineMutationTool(
       "RemoveLogEntry",
       "Remove a food or weight entry by its ID.",
       z.object({ id: z.string().uuid() }).strict(),
@@ -198,7 +151,7 @@ function createTools(db: DatabaseSync): AgentTool[] {
         return { removed };
       },
     ),
-    defineTool(
+    defineMutationTool(
       "UpdateProfile",
       "Update only the requested profile or goals. Omitted fields stay unchanged. " +
         "Read the existing profile before replacing userInfo, which is free-form profile text.",
@@ -221,7 +174,7 @@ function createTools(db: DatabaseSync): AgentTool[] {
         };
       },
     ),
-    defineTool(
+    defineMutationTool(
       "UpdateTrainingProgram",
       "Replace the training program text with the program the user requested or agreed to. " +
         "Read the existing program before making a partial revision.",
@@ -231,7 +184,7 @@ function createTools(db: DatabaseSync): AgentTool[] {
         return input;
       },
     ),
-    defineTool(
+    defineMutationTool(
       "UpsertKnownIngredient",
       "Save an ingredient's nutrition per 100 g or 100 ml. Supply its ID to replace an existing " +
         "ingredient; omit the ID to create one. Read the existing ingredient before updating it.",
@@ -245,27 +198,29 @@ function createTools(db: DatabaseSync): AgentTool[] {
       }).strict(),
       (input) => {
         const known = readIngredients(db);
-        const index = input.id ? known.ingredients.findIndex((entry) => entry.id === input.id) : -1;
-        if (input.id && index === -1) throw new Error("Known ingredient not found.");
-        const entry = {
-          ...(index === -1 ? {} : known.ingredients[index]),
+        const previous = input.id
+          ? known.ingredients.find((entry) => entry.id === input.id)
+          : undefined;
+        if (input.id && !previous) throw new Error("Known ingredient not found.");
+        const entry = Ingredient.parse({
+          ...previous,
           id: input.id ?? crypto.randomUUID(),
           name: input.name,
           brand: input.brand,
           unit: input.unit,
           nutrients: {
-            ...(index === -1 ? {} : known.ingredients[index].nutrients),
+            ...previous?.nutrients,
             kcal: input.kcal,
             protein: input.protein,
           },
-        };
-        if (index === -1) known.ingredients.push(entry);
-        else known.ingredients[index] = entry;
+        });
+        if (previous) known.ingredients[known.ingredients.indexOf(previous)] = entry;
+        else known.ingredients.push(entry);
         writeDocumentContentBySlug(db, "known-ingredients", JSON.stringify(known));
         return entry;
       },
     ),
-    defineTool(
+    defineMutationTool(
       "RemoveKnownIngredient",
       "Remove a saved ingredient by its ID.",
       z.object({ id: z.string().uuid() }).strict(),
@@ -278,7 +233,7 @@ function createTools(db: DatabaseSync): AgentTool[] {
         return { removed };
       },
     ),
-    defineTool(
+    defineMutationTool(
       "SaveMemory",
       "Remember a durable fact explicitly stated by the user. Write concise factual text in the " +
         "user's language and perspective, without a date. Acknowledge the saved memory in chat.",
@@ -291,7 +246,7 @@ function createTools(db: DatabaseSync): AgentTool[] {
         return { entry };
       },
     ),
-    defineTool(
+    defineMutationTool(
       "UpdateMemory",
       "Replace a saved memory. Identify it by its exact entry text, including the date prefix, " +
         "and provide new text without a date.",
@@ -306,7 +261,7 @@ function createTools(db: DatabaseSync): AgentTool[] {
         return { entry };
       },
     ),
-    defineTool(
+    defineMutationTool(
       "RemoveMemory",
       "Forget a saved memory, identified by its exact entry text including the date prefix.",
       z.object({ entry: z.string().min(1) }).strict(),

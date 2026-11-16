@@ -1,8 +1,8 @@
-import Anthropic from "@anthropic-ai/sdk";
 import { DatabaseSync } from "node:sqlite";
 import z from "zod";
 import { querySchema, readAgentDocuments } from "../db/agent.ts";
 import { loadFineliData } from "../db/fineli.ts";
+import { defineReadTool } from "./tool.ts";
 import { runToolWorker } from "./worker.ts";
 
 const queryInput = z.object({
@@ -10,11 +10,10 @@ const queryInput = z.object({
   params: z.array(z.union([z.string(), z.number(), z.null()])).default([]),
 }).strict();
 
-function queryDatabaseTool(): Anthropic.Tool {
-  return {
-    name: "QueryDatabase",
-    description:
-      `Query the user's data and local Fineli database using one read-only SQLite SELECT or WITH query.
+function queryDatabaseTool(db: DatabaseSync) {
+  return defineReadTool(
+    "QueryDatabase",
+    `Query the user's data and local Fineli database using one read-only SQLite SELECT or WITH query.
 Use positional ? parameters for values. Results contain columns, row arrays, and a truncated flag.
 At most 200 rows and 64 KiB are returned; narrow the query or aggregate when truncated.
 
@@ -33,18 +32,16 @@ WHERE fineli_search MATCH ? ORDER BY s.rank LIMIT 15
 with params ["broileri AND rintafile*"]. Try alternate words or broader prefixes if needed.
 Choose the actual preparation/product from the returned records. FTS matches are lexical,
 not semantic. For substring matching, use lower(name) LIKE ? (SQLite lower is ASCII-only).`,
-    input_schema: z.toJSONSchema(queryInput, { io: "input" }) as Anthropic.Tool.InputSchema,
-  };
-}
-
-async function executeQueryDatabaseTool(db: DatabaseSync, input: unknown): Promise<string> {
-  const parsed = queryInput.parse(input);
-  const result = await runToolWorker(
-    new URL("./query_worker.ts", import.meta.url),
-    { ...parsed, documents: readAgentDocuments(db), fineli: loadFineliData() },
-    10000,
+    queryInput,
+    async (input) => {
+      const result = await runToolWorker(
+        new URL("./query_worker.ts", import.meta.url),
+        { ...input, documents: readAgentDocuments(db), fineli: loadFineliData() },
+        10000,
+      );
+      return JSON.stringify(result);
+    },
   );
-  return JSON.stringify(result);
 }
 
-export { executeQueryDatabaseTool, queryDatabaseTool };
+export { queryDatabaseTool };

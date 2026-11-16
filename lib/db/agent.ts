@@ -40,13 +40,23 @@ interface AgentDocuments {
   trainingProgram: string;
 }
 
+function readLog(db: DatabaseSync) {
+  return Log.parse(JSON.parse(readDocumentContentBySlug(db, "log")));
+}
+
+function readConfig(db: DatabaseSync) {
+  return Config.parse(JSON.parse(readDocumentContentBySlug(db, "config")));
+}
+
+function readIngredients(db: DatabaseSync) {
+  return KnownIngredients.parse(JSON.parse(readDocumentContentBySlug(db, "known-ingredients")));
+}
+
 function readAgentDocuments(db: DatabaseSync): AgentDocuments {
   return {
-    config: Config.parse(JSON.parse(readDocumentContentBySlug(db, "config"))),
-    log: Log.parse(JSON.parse(readDocumentContentBySlug(db, "log"))),
-    ingredients: KnownIngredients.parse(
-      JSON.parse(readDocumentContentBySlug(db, "known-ingredients")),
-    ),
+    config: readConfig(db),
+    log: readLog(db),
+    ingredients: readIngredients(db),
     trainingProgram: readDocumentContentBySlug(db, "training-program"),
   };
 }
@@ -124,4 +134,12 @@ function createQueryDatabase(documents: AgentDocuments, fineli: FineliFood[]): D
   }
 }
 
-export { type AgentDocuments, createQueryDatabase, querySchema, readAgentDocuments };
+export {
+  type AgentDocuments,
+  createQueryDatabase,
+  querySchema,
+  readAgentDocuments,
+  readConfig,
+  readIngredients,
+  readLog,
+};

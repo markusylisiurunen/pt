@@ -87,6 +87,7 @@ Deno.test("turns structured chat failures into error messages", () => {
 
 Deno.test("rejects malformed chat request JSON", async () => {
   const agent = {
+    getHistory: () => ({ messages: [], active: false }),
     async *send() {
       yield { type: "content_delta", content: "unused" } as const;
     },
@@ -104,6 +105,7 @@ Deno.test("rejects malformed chat request JSON", async () => {
 
 Deno.test("frames chat failures as stream events", async () => {
   const agent = {
+    getHistory: () => ({ messages: [], active: false }),
     async *send() {
       yield { type: "content_delta", content: "Partial" } as const;
       throw new Error("Anthropic unavailable");

@@ -4,8 +4,6 @@ import { addDays, getHelsinkiDate } from "../../../util/transform";
 const HISTORY_DAYS = 14;
 // Days within this many kcal of the target count as on target.
 const ON_TARGET_KCAL = 50;
-// Days logged below this share of the target were most likely only partly logged.
-const PARTIAL_DAY_SHARE = 0.4;
 
 const Bar: React.FC<{ diff: number; maxDiff: number }> = ({ diff, maxDiff }) => (
   <span
@@ -31,13 +29,12 @@ const IntakeHistory: React.FC<IntakeHistoryProps> = ({ now, target, history }) =
     return {
       date,
       diff: kcal === undefined ? null : Math.round(kcal - target),
-      partial: kcal !== undefined && kcal < target * PARTIAL_DAY_SHARE,
     };
   });
-  // Partly logged days would drag the average down, so it only counts complete days.
-  const loggedDiffs = days.flatMap((day) => (day.diff === null || day.partial ? [] : [day.diff]));
+  const loggedDiffs = days.flatMap((day) => (day.diff === null ? [] : [day.diff]));
   const maxDiff = Math.max(...loggedDiffs.map(Math.abs), ON_TARGET_KCAL);
-  const averageDiff = loggedDiffs.reduce((sum, diff) => sum + diff, 0) / loggedDiffs.length;
+  const averageKcal =
+    target + loggedDiffs.reduce((sum, diff) => sum + diff, 0) / loggedDiffs.length;
 
   function formatDate(date: string): string {
     return new Date(`${date}T00:00:00Z`).toLocaleDateString("fi-FI", {
@@ -56,7 +53,7 @@ const IntakeHistory: React.FC<IntakeHistoryProps> = ({ now, target, history }) =
       <header className="card-header">
         <h2>Kalorit, 2 viikkoa</h2>
         {loggedDiffs.length > 0 ? (
-          <span>ka. {formatDiff(Math.round(averageDiff))} kcal / pv</span>
+          <span>Kirjattu ka. {Math.round(averageKcal).toLocaleString("fi-FI")} kcal / pv</span>
         ) : null}
       </header>
       {days.every((day) => day.diff === null) ? (
@@ -64,7 +61,7 @@ const IntakeHistory: React.FC<IntakeHistoryProps> = ({ now, target, history }) =
       ) : (
         <>
           <ol className="days">
-            {days.map(({ date, diff, partial }) => {
+            {days.map(({ date, diff }) => {
               if (diff === null) {
                 return (
                   <li key={date} className="missing" title={`${formatDate(date)}: ei kirjauksia`}>
@@ -82,8 +79,8 @@ const IntakeHistory: React.FC<IntakeHistoryProps> = ({ now, target, history }) =
               return (
                 <li
                   key={date}
-                  className={partial ? "under partial" : diff > 0 ? "over" : "under"}
-                  title={`${formatDate(date)}: ${formatDiff(diff)} kcal${partial ? ", vajaa kirjaus?" : ""}`}
+                  className={diff > 0 ? "over" : "under"}
+                  title={`${formatDate(date)}: ${formatDiff(diff)} kcal`}
                 >
                   <span className="half">
                     {diff > 0 ? <Bar diff={diff} maxDiff={maxDiff} /> : null}

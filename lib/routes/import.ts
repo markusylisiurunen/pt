@@ -56,6 +56,7 @@ function importRoute(db: DatabaseSync): Route {
         if (!log.success) {
           return new Response("Invalid payload", { status: 400 });
         }
+        parsed.data.content = JSON.stringify(log.data);
       } catch {
         return new Response("Invalid payload", { status: 400 });
       }

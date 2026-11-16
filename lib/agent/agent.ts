@@ -1,6 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { DatabaseSync } from "node:sqlite";
 import { readAgentDocuments } from "../db/agent.ts";
+import { FoodLogEntry } from "../entities/log.ts";
 import { systemPrompt } from "../prompts/system.ts";
 import {
   getDateAtTimeZone,
@@ -15,6 +16,8 @@ type AgentEvent =
   | { type: "tool_use"; name: string };
 
 type ChatMessage = Anthropic.Beta.BetaMessageParam;
+
+const unexecutedResult = "Tool was not executed: the turn was interrupted before execution.";
 
 class Agent {
   private id = crypto.randomUUID();
@@ -38,10 +41,9 @@ class Agent {
     signal?: AbortSignal,
   ): AsyncGenerator<AgentEvent> {
     if (this.activeChats.has(id)) throw new Error("This chat already has a response in progress.");
+    const messages = this.recoverChatHistory(id);
     this.activeChats.add(id);
-    const messages: ChatMessage[] = [];
     try {
-      messages.push(...this.loadChatHistory(id));
       signal?.throwIfAborted();
       if (this.maxTokens === undefined) {
         const model = await this.client.models.retrieve(this.model, {}, { signal });
@@ -119,14 +121,13 @@ class Agent {
         const blocks = message.content.filter((block) => block.type === "tool_use");
         if (blocks.length === 0) {
           this.saveChatHistory(id, messages);
-          if (message.stop_reason === "pause_turn") continue;
           return;
         }
 
         const results: Anthropic.Beta.BetaToolResultBlockParam[] = blocks.map((block) => ({
           type: "tool_result",
           tool_use_id: block.id,
-          content: "Tool was not executed: the turn was interrupted before execution.",
+          content: unexecutedResult,
           is_error: true,
         }));
         messages.push({ role: "user", content: results });
@@ -143,9 +144,6 @@ class Agent {
               this.db.exec("BEGIN IMMEDIATE");
               try {
                 const result = tool.execute(block.input);
-                if (typeof result !== "string") {
-                  throw new Error("Mutation tools must be synchronous.");
-                }
                 results[index] = { type: "tool_result", tool_use_id: block.id, content: result };
                 this.saveChatHistory(id, messages);
                 this.db.exec("COMMIT");
@@ -197,6 +195,7 @@ class Agent {
       throw error;
     } finally {
       this.activeChats.delete(id);
+      this.recoverChatHistory(id);
     }
   }
 
@@ -219,6 +218,67 @@ class Agent {
     return row ? JSON.parse(row.messages) : [];
   }
 
+  private recoverChatHistory(id: string): ChatMessage[] {
+    const messages = this.loadChatHistory(id);
+    if (!this.activeChats.has(id) && messages.at(-1)?.role === "user") {
+      this.finishWithNotice(
+        id,
+        messages,
+        "This turn was interrupted. Completed tool results remain saved. " +
+          "The earlier request is no longer active: do not carry out its remaining actions " +
+          "unless the user explicitly requests them again. Review the saved results before retrying.",
+      );
+    }
+    return messages;
+  }
+
+  getHistory(id: string) {
+    const history = this.recoverChatHistory(id);
+    const messages: Record<string, unknown>[] = [];
+    const calls = new Map<string, string>();
+    for (const message of history) {
+      if (typeof message.content === "string") {
+        messages.push({ role: message.role, content: message.content, images: [] });
+        continue;
+      }
+      const content = message.content ?? [];
+      const text = content.filter((block): block is Anthropic.Beta.BetaTextBlockParam =>
+        block.type === "text"
+      )
+        .map((block) => block.text).join("\n");
+      const images = content.filter((block): block is Anthropic.Beta.BetaImageBlockParam =>
+        block.type === "image"
+      )
+        .flatMap((block) =>
+          block.source.type === "base64"
+            ? [{
+              mimeType: block.source.media_type,
+              base64Data: `data:${block.source.media_type};base64,${block.source.data}`,
+            }]
+            : []
+        );
+      if (text || images.length) messages.push({ role: message.role, content: text, images });
+      for (const block of content) {
+        if (block.type === "tool_use") calls.set(block.id, block.name);
+        if (block.type === "tool_result") {
+          messages.push({
+            role: "tool-result",
+            name: calls.get(block.tool_use_id) ?? block.tool_use_id,
+            status: block.content === unexecutedResult
+              ? (this.activeChats.has(id) ? "pending" : "not-executed")
+              : block.is_error
+              ? "failed"
+              : "completed",
+            content: typeof block.content === "string"
+              ? block.content
+              : JSON.stringify(block.content),
+          });
+        }
+      }
+    }
+    return { messages, active: this.activeChats.has(id) };
+  }
+
   private saveChatHistory(chatId: string, messages: ChatMessage[]): void {
     const json = JSON.stringify(messages);
     const now = new Date().toISOString();
@@ -232,7 +292,7 @@ class Agent {
     const now = new Date();
     const date = getDateAtTimeZone(now, "Europe/Helsinki");
     const { config, log } = readAgentDocuments(this.db);
-    const today = log.entries.filter((entry) =>
+    const today = log.entries.filter((entry): entry is FoodLogEntry =>
       entry.kind === "food" && getDateAtTimeZone(entry.ts, "Europe/Helsinki") === date
     );
     const latestWeight =
@@ -255,13 +315,13 @@ class Agent {
       memories: config.memoryEntries,
       today: {
         entries: today.length,
-        kcal: today.reduce((sum, entry) => sum + (entry.kind === "food" ? entry.kcal ?? 0 : 0), 0),
+        kcal: today.reduce((sum, entry) => sum + (entry.kcal ?? 0), 0),
         protein: today.reduce(
-          (sum, entry) => sum + (entry.kind === "food" ? entry.protein ?? 0 : 0),
+          (sum, entry) => sum + (entry.protein ?? 0),
           0,
         ),
         entriesWithMissingNutrition: today.filter((entry) =>
-          entry.kind === "food" && (entry.kcal === undefined || entry.protein === undefined)
+          entry.kcal === undefined || entry.protein === undefined
         ).length,
       },
       latestWeight: latestWeight ?? null,

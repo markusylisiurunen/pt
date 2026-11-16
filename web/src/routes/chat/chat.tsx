@@ -1,5 +1,5 @@
 import { ArrowUpIcon, ChevronLeftIcon, ImageIcon, LoaderCircleIcon, XIcon } from "lucide-react";
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { authenticatedFetch } from "../../auth";
 import "./chat.css";
@@ -40,6 +40,38 @@ const ChatRoute: React.FC = () => {
   const [images, setImages] = useState<ImageAttachment[]>([]);
   const [isStreaming, setIsStreaming] = useState(false);
 
+  const [historyReady, setHistoryReady] = useState(false);
+  const [active, setActive] = useState(false);
+
+  useEffect(() => {
+    if (isStreaming) return;
+    const controller = new AbortController();
+    let timer: ReturnType<typeof setTimeout>;
+    async function reload() {
+      try {
+        const response = await authenticatedFetch(`/api/chats/${id}`, {
+          signal: controller.signal,
+        });
+        if (!response.ok) throw new Error("Failed to load chat history");
+        const history: { messages: ChatMessage[]; active: boolean } = await response.json();
+        if (controller.signal.aborted) return;
+        if (history.messages.length) setMessages(history.messages);
+        setActive(history.active);
+        setHistoryReady(true);
+        if (history.active) timer = setTimeout(reload, 1000);
+      } catch (error) {
+        if (controller.signal.aborted) return;
+        console.error("Error loading chat history:", error);
+        setHistoryReady(false);
+      }
+    }
+    void reload();
+    return () => {
+      controller.abort();
+      clearTimeout(timer);
+    };
+  }, [id, isStreaming]);
+
   const historyRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -64,7 +96,7 @@ const ChatRoute: React.FC = () => {
   };
 
   async function sendMessage() {
-    if ((!input.trim() && images.length === 0) || isStreaming) return;
+    if ((!input.trim() && images.length === 0) || isStreaming || active || !historyReady) return;
 
     const userMessage: ChatMessage = {
       role: "user",
@@ -75,6 +107,7 @@ const ChatRoute: React.FC = () => {
     setMessages((prev) => [...prev, userMessage]);
     setInput("");
     setImages([]);
+    setHistoryReady(false);
     setIsStreaming(true);
 
     if (fileInputRef.current) {
@@ -142,6 +175,23 @@ const ChatRoute: React.FC = () => {
                 return <AssistantMessage key={index} content={message.content} />;
               case "tool-use":
                 return <ToolUseMessage key={index} name={message.name} />;
+              case "tool-result":
+                return (
+                  <details key={index}>
+                    <summary>
+                      {message.name}:{" "}
+                      {
+                        {
+                          completed: "valmis",
+                          failed: "epäonnistui",
+                          pending: "kesken",
+                          "not-executed": "ei suoritettu",
+                        }[message.status]
+                      }
+                    </summary>
+                    <pre>{message.content}</pre>
+                  </details>
+                );
               case "error":
                 return (
                   <p key={index} className="error">
@@ -152,6 +202,9 @@ const ChatRoute: React.FC = () => {
           })}
         </div>
       </div>
+      {!historyReady && !isStreaming ? (
+        <p>Keskustelun lataus kesken. Jos lataus epäonnistui, päivitä sivu ennen jatkamista.</p>
+      ) : null}
       <div className="composer card">
         <textarea
           rows={1}
@@ -200,7 +253,9 @@ const ChatRoute: React.FC = () => {
             className="icon-button send"
             aria-label="Lähetä"
             onClick={sendMessage}
-            disabled={isStreaming || (input.trim() === "" && images.length === 0)}
+            disabled={
+              !historyReady || active || isStreaming || (input.trim() === "" && images.length === 0)
+            }
           >
             {isStreaming ? (
               <LoaderCircleIcon size={20} strokeWidth={2.25} />

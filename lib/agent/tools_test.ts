@@ -2,11 +2,12 @@ import assert from "node:assert/strict";
 import { DatabaseSync } from "node:sqlite";
 import { readDocumentContentBySlug, writeDocumentContentBySlug } from "../db/docs.ts";
 import { migrateDocuments, migrateSchema } from "../db/migrate.ts";
+import { readLog } from "../db/agent.ts";
 import { Config } from "../entities/config.ts";
 import { Log } from "../entities/log.ts";
 import { importRoute } from "../routes/import.ts";
-import { executeExecutePythonTool } from "./tool_execute_python.ts";
-import { executeQueryDatabaseTool } from "./tool_query_database.ts";
+import { executePythonTool } from "./tool_execute_python.ts";
+import { queryDatabaseTool } from "./tool_query_database.ts";
 import { createTools } from "./tools.ts";
 import { runToolWorker } from "./worker.ts";
 
@@ -134,7 +135,7 @@ Deno.test("queries expose Helsinki dates, meal contributions, and original Finel
       }),
     );
     const query = async (sql: string, params: (string | number | null)[] = []) =>
-      JSON.parse(await executeQueryDatabaseTool(db, { sql, params }));
+      JSON.parse(await queryDatabaseTool(db).execute({ sql, params }));
     assert.deepEqual(
       (await query(
         "SELECT local_date, SUM(i.kcal), SUM(i.protein) FROM food_log f " +
@@ -180,10 +181,10 @@ Deno.test("SQL access rejects writes, extra statements, private tables, and exec
         "SELECT name FROM fineli_search WHERE fineli_search MATCH 'bad AND'",
       ]
     ) {
-      await assert.rejects(() => executeQueryDatabaseTool(db, { sql }), sql);
+      await assert.rejects(() => queryDatabaseTool(db).execute({ sql }), sql);
     }
     const result = JSON.parse(
-      await executeQueryDatabaseTool(db, {
+      await queryDatabaseTool(db).execute({
         sql: "SELECT name FROM fineli_foods",
       }),
     );
@@ -197,17 +198,17 @@ Deno.test("SQL access rejects writes, extra statements, private tables, and exec
 
 Deno.test("Python calculations have fresh state and no application globals", async () => {
   assert.equal(
-    await executeExecutePythonTool({ code: "x = 150\nprint(x / 100 * 165)" }),
+    await executePythonTool.execute({ code: "x = 150\nprint(x / 100 * 165)" }),
     "247.5\n",
   );
   assert.equal(
-    await executeExecutePythonTool({
+    await executePythonTool.execute({
       code: "import js\nprint('x' in globals())\nprint(hasattr(js, 'Deno'))",
     }),
     "False\nFalse\n",
   );
   await assert.rejects(
-    () => executeExecutePythonTool({ code: "raise ValueError('invalid calculation')" }),
+    () => executePythonTool.execute({ code: "raise ValueError('invalid calculation')" }),
     /invalid calculation/,
   );
 });
@@ -222,5 +223,64 @@ Deno.test("tool workers terminate when code does not finish", async () => {
     await assert.rejects(() => runToolWorker(new URL(url), {}, 100), /timed out/);
   } finally {
     URL.revokeObjectURL(url);
+  }
+});
+
+Deno.test("import and document reads normalize ingredient totals while retaining legacy nutrition", async () => {
+  const db = createDatabase();
+  try {
+    const entries = [
+      {
+        id: crypto.randomUUID(),
+        ts: "2026-01-01T00:00:00.000Z",
+        kind: "food",
+        description: "Contradictory totals",
+        kcal: 100,
+        protein: 1,
+        ingredients: [{ description: "Meal", kcal: 500, protein: 30 }],
+      },
+      {
+        id: crypto.randomUUID(),
+        ts: "2026-01-01T00:00:00.000Z",
+        kind: "food",
+        description: "Omitted totals",
+        ingredients: [{ description: "Meal", kcal: 400, protein: 20 }],
+      },
+      {
+        id: crypto.randomUUID(),
+        ts: "2026-01-01T00:00:00.000Z",
+        kind: "food",
+        description: "Legacy",
+        carbs: 15,
+        fat: 5,
+      },
+    ];
+    writeDocumentContentBySlug(db, "log", JSON.stringify({ entries }));
+    const normalized = readLog(db);
+    assert.deepEqual(
+      normalized.entries.map((entry) => entry.kind === "food" ? [entry.kcal, entry.protein] : []),
+      [[500, 30], [400, 20], [undefined, undefined]],
+    );
+    const response = await importRoute(db)(
+      new Request("http://localhost/api/import", {
+        method: "POST",
+        body: JSON.stringify({ slug: "log", content: JSON.stringify({ entries }) }),
+      }),
+    );
+    assert.equal(response.status, 200);
+    assert.deepEqual(JSON.parse(readDocumentContentBySlug(db, "log")), normalized);
+    const update = createTools(db).find((tool) => tool.definition.name === "UpdateFoodLogEntry")!;
+    const replacement = JSON.parse(
+      await update.execute({
+        id: entries[2].id,
+        description: "Replacement",
+        kcal: 300,
+        protein: 10,
+      }),
+    );
+    assert.equal(replacement.carbs, undefined);
+    assert.equal(replacement.fat, undefined);
+  } finally {
+    db.close();
   }
 });

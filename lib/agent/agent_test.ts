@@ -100,8 +100,20 @@ Deno.test("interrupted tool batches record completed writes and leave remaining 
       messages: string;
     };
     const history = JSON.parse(row.messages);
-    assert.equal(history.at(-1).content[0].is_error, undefined);
-    assert.equal(history.at(-1).content[1].is_error, true);
+    assert.equal(history.at(-2).content[0].is_error, undefined);
+    assert.equal(history.at(-2).content[1].is_error, true);
+
+    assert.match(history.at(-1).content[0].text, /no longer active/);
+    const recovered = agent.getHistory("chat");
+    assert.equal(recovered.active, false);
+    assert.equal(
+      recovered.messages.find((message) => message.name === "AppendFoodLogEntry")?.status,
+      "completed",
+    );
+    assert.equal(
+      recovered.messages.find((message) => message.name === "AppendWeightLogEntry")?.status,
+      "not-executed",
+    );
 
     for await (const event of agent.send("chat", "What was saved?", [])) {
       assert.equal(event.type, "content_delta");
@@ -169,6 +181,24 @@ Deno.test("truncated model responses do not execute their tool requests", async 
     assert.ok(
       !JSON.parse(row.messages).at(-1).content.some((block: Block) => block.type === "tool_use"),
     );
+  } finally {
+    db.close();
+  }
+});
+
+Deno.test("unfinished requests are closed before a later message, including after a restart", async () => {
+  const { db, agent, requests } = createFixture(() =>
+    modelResponse([{ type: "text", text: "Hello" }])
+  );
+  try {
+    db.prepare("INSERT INTO chats (id, messages, created_at, updated_at) VALUES (?, ?, ?, ?)")
+      .run("chat", JSON.stringify([{ role: "user", content: "Log lunch" }]), "now", "now");
+    const history = agent.getHistory("chat");
+    assert.equal(history.messages[0].content, "Log lunch");
+    assert.match(String(history.messages[1].content), /interrupted/);
+    for await (const event of agent.send("chat", "Hello", [])) void event;
+    assert.match(JSON.stringify(requests[0].messages[1]), /no longer active/);
+    assert.equal(Log.parse(JSON.parse(readDocumentContentBySlug(db, "log"))).entries.length, 0);
   } finally {
     db.close();
   }

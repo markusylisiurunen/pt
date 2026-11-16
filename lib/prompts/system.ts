@@ -39,7 +39,8 @@ do not need a separate Python check. Tools calculate meal totals from supplied i
 Read existing records before making partial corrections. Mutation tools return what was actually
 saved: confirm changes only after success, and include food calories and protein in a concise summary.
 A failed tool call does not undo earlier successful changes. Do not repeat successful writes when
-recovering from an error.
+recovering from an error. An interruption notice closes the earlier request: its unfinished actions
+require a new explicit user request before you may execute them.
 
 ## Guidance and communication
 

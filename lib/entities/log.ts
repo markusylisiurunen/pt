@@ -21,7 +21,16 @@ const FoodLogEntry = LogEntry.extend({
   protein: z.number().min(0).optional(),
   carbs: z.number().min(0).optional(),
   fat: z.number().min(0).optional(),
-});
+}).transform((entry) =>
+  entry.ingredients
+    ? {
+      ...entry,
+      kcal: Math.round(entry.ingredients.reduce((sum, item) => sum + item.kcal, 0) * 1e6) / 1e6,
+      protein: Math.round(entry.ingredients.reduce((sum, item) => sum + item.protein, 0) * 1e6) /
+        1e6,
+    }
+    : entry
+);
 type FoodLogEntry = z.infer<typeof FoodLogEntry>;
 
 const WeightLogEntry = LogEntry.extend({
@@ -31,7 +40,7 @@ const WeightLogEntry = LogEntry.extend({
 type WeightLogEntry = z.infer<typeof WeightLogEntry>;
 
 const Log = z.object({
-  entries: z.array(z.discriminatedUnion("kind", [FoodLogEntry, WeightLogEntry])).default([]),
+  entries: z.array(z.union([FoodLogEntry, WeightLogEntry])).default([]),
 });
 type Log = z.infer<typeof Log>;
 

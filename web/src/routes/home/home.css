@@ -137,10 +137,6 @@
 .home .intake-history .under .bar {
   background: var(--color-kcal-muted);
 }
-.home .intake-history .partial .bar {
-  background: none;
-  box-shadow: inset 0px 0px 0px 1.5px var(--color-kcal-muted);
-}
 .home .intake-history .dot {
   border-radius: var(--radius-pill);
   height: var(--space-2);

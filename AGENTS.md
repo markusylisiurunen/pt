@@ -64,6 +64,8 @@ deno task check
 
 `deno task check` verifies formatting, linting, type checking (including tool workers), and tests, then lints and builds the frontend. Centrally managed skills and workflows are excluded from local formatting; change their sources in the agents repository.
 
+<!-- prettier-ignore-start -->
+
 <!-- agents:testing:start -->
 
 ## Testing
@@ -81,6 +83,10 @@ This repository's own guidance may set a different bar for some areas. Follow it
 
 <!-- agents:testing:end -->
 
+<!-- prettier-ignore-end -->
+
+<!-- prettier-ignore-start -->
+
 <!-- agents:writing:start -->
 
 ## Writing
@@ -91,6 +97,8 @@ Use skill `clear-writing` for all text, including its part on writing for AI mod
 - This repository's own guidance may name its writing surfaces and their readers, such as user-facing documentation or product copy. Follow it where it applies.
 
 <!-- agents:writing:end -->
+
+<!-- prettier-ignore-end -->
 
 ## Documentation
 
@@ -105,6 +113,8 @@ Releases are tag based. Tags matching `v*.*.*` publish the container image and `
 `.agents/managed.json` identifies centrally managed skills, prompts, configuration, and the marked sections in this file. Change their sources in the agents repository rather than editing managed content directly. Follow each skill's activation rules. Use `github-workflow` for Git and GitHub work.
 
 `.cowork/scripts/` and `.tau/scripts/provision` are repo-owned. Keep lifecycle hooks safe for dirty, non-default worktrees and preserve Git state. Do not add recurring schedules unless requested.
+
+<!-- prettier-ignore-start -->
 
 <!-- agents:subagents:start -->
 
@@ -128,3 +138,5 @@ For Claude subagents, prefer the Claude Code models, which use subscription limi
 
 Sonnet, Claude Code Sonnet, Claude Code Opus, Claude Code Haiku, and Opus may be selected as model overrides only when explicitly requested by the user or active instructions. Do not select them on your own. This does not prevent inheriting the parent model when no override is requested.
 <!-- agents:subagents:end -->
+
+<!-- prettier-ignore-end -->
